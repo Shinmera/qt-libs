@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8"/>
+    <title>QT-LIBS</title>
+    <style type="text/css">
+      html{font-family: serif;}
+      code a{text-decoration: none;}
+      h1{display: inline-block; margin-bottom: 0;}
+      code{font-family: monospace;}
+      h4{display: inline-block; margin: 0; padding: 0;}
+      #symbol-index ul{list-style: none;}
+      .package li{margin-bottom: 20px;}
+      .package pre{margin: 0 0 0 10px; white-space: pre-wrap;}
+      .package .nicknames{font-weight: normal;}
+      table{margin: 20px;}
+      td{padding-bottom: 10px;}
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>qt-libs</h1>
+      <span>1.0.0</span>
+      <p>System to ensure that the necessary Qt libs are available.</p>
+    </header>
+    <div id="content">
+      <article>
+        <c:documentate>
+          <span><h2>About qt-libs</h2>
+
+<p>Working with Qtools requires working with CommonQt. This in turn currently requires working with SmokeQt. However, SmokeQt is not easily available on all platforms (especially OS X). This project should simply ensure that the libraries are either available by your system directly, or that they are built automatically for you. This ensures that Qtools can be used directly with hopefully no further user intervention being necessary.</p>
+
+<h2>The Details</h2>
+
+<p>There are two systems to be aware of: <code>qt-lib-generator</code> and <code>qt-libs</code>. The former is what's responsible for building and ensuring the external smoke libraries. The latter invokes the former if necessary, and stores the desired libraries in an easily accessible location, while also ensuring that CommonQt is tricked into using the proper paths when loading its libraries.</p>
+
+<p>In effect this means that if you are running a project that depends on CommonQt (<code>:qt</code>), you should instead depend on <code>:qt-libs</code>, which will try to make sure that everything concerning foreign libraries will go smoothly.</p>
+
+<p>In the future, CommonQt will use its own system to hook into Qt and drop Smoke support. When that time comes, this project will hopefully become obsolete. However, for the time being, Smoke is a necessary evil, and as such, this library hopes to make things a bit easier.</p>
+
+<p>The deed is done by providing a couple of ASDF extensions in the form of extra operations <code><a href="#QT-LIB-GENERATOR:DOWNLOAD-OP">download-op</a></code>, <code><a href="#QT-LIB-GENERATOR:GENERATE-OP">generate-op</a></code>, and <code><a href="#QT-LIB-GENERATOR:INSTALL-OP">install-op</a></code>, as well as extra system classes <code><a href="#QT-LIB-GENERATOR:BUILD-SYSTEM">build-system</a></code>, <code><a href="#QT-LIB-GENERATOR:MAKE-BUILD-SYSTEM">make-build-system</a></code>, and <code><a href="#QT-LIB-GENERATOR:CMAKE-BUILD-SYSTEM">cmake-build-system</a></code>. Using these, systems for Qt4, smokegen, smokeqt, and libcommonqt are defined that will step through the downloading of source files, and the subsequent build and installation thereof. Do not worry, none of these will try to install anything to your system folders. No administration rights are required. Everything is stored in ASDF's cache folders.</p>
+
+<p>The build system tries to invoke <code>make</code> with as many parallel jobs as supported. If this is for some reason not desired (eg running out of RAM), you can set <code><a href="#QT-LIB-GENERATOR:*MAX-CPUS*">*max-cpus*</a></code> to a different value.</p>
+</span>
+        </c:documentate>
+      </article>
+      <article>
+        <h2>Copyright</h2>
+        <span>qt-libs</span> is licensed under the <span><a href="https://tldrlegal.com/search?q=Artistic">Artistic</a></span> license and ©<span>2015</span> <span>Nicolas Hafner &lt;shinmera@tymoon.eu&gt;</span>. This library can be obtained on <a href="https://github.com/Shinmera/qt-libs">https://github.com/Shinmera/qt-libs</a>.
+      </article>
+      <article id="symbol-index">
+        <h2>Package Index</h2>
+        <ul><li class="package">
+            <h3>
+              <a name="QT-LIBS" href="#QT-LIBS">QT-LIBS</a>
+              <span class="nicknames">(ORG.SHIRAKUMO.QTOOLS.LIBS)</span>
+            </h3>
+            <ul><li>
+                <a name="QT-LIBS:ENSURE-STANDALONE-LIBS"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#QT-LIBS:ENSURE-STANDALONE-LIBS">ENSURE-STANDALONE-LIBS</a></h4>
+                      <span></span>
+                      <span>(&amp;KEY (STANDALONE-DIR *STANDALONE-LIBS-DIR*))</span>
+                    </code>
+                  </header>
+                  <pre/>
+                </article>
+              </li><li>
+                <a name="QT-LIBS:LOAD-LIBCOMMONQT"/>
+                <article>
+                  <header>
+                    <span>FUNCTION</span>
+                    <code>
+                      <h4><a href="#QT-LIBS:LOAD-LIBCOMMONQT">LOAD-LIBCOMMONQT</a></h4>
+                      <span></span>
+                      <span>(&amp;KEY FORCE (ENSURE-LIBS T))</span>
+                    </code>
+                  </header>
+                  <pre/>
+                </article>
+              </li><li>
+                <a name="QT-LIBS:*STANDALONE-LIBS-DIR*"/>
+                <article>
+                  <header>
+                    <span>SPECIAL</span>
+                    <code>
+                      <h4><a href="#QT-LIBS:*STANDALONE-LIBS-DIR*">*STANDALONE-LIBS-DIR*</a></h4>
+                      <span></span>
+                      <span>()</span>
+                    </code>
+                  </header>
+                  <pre/>
+                </article>
+              </li></ul>
+          </li><li class="package">
+            <h3>
+              <a name="QT-LIB-GENERATOR" href="#QT-LIB-GENERATOR">QT-LIB-GENERATOR</a>
+              <span class="nicknames">(ORG.SHIRAKUMO.QTOOLS.LIBS.GENERATOR)</span>
+            </h3>
+            <ul><li>
+                <a name="QT-LIB-GENERATOR:BUILD-SYSTEM"/>
+                <article>
+                  <header>
+                    <span>CLASS</span>
+                    <code>
+                      <h4><a href="#QT-LIB-GENERATOR:BUILD-SYSTEM">BUILD-SYSTEM</a></h4>
+                      <span></span>
+                      <span>()</span>
+                    </code>
+                  </header>
+                  <pre/>
+                </article>
+              </li><li>
+                <a name="QT-LIB-GENERATOR:BUILD-SYSTEM-OP"/>
+                <article>
+                  <header>
+                    <span>CLASS</span>
+                    <code>
+                      <h4><a href="#QT-LIB-GENERATOR:BUILD-SYSTEM-OP">BUILD-SYSTEM-OP</a></h4>
+                      <span></span>
+                      <span>()</span>
+                    </code>
+                  </header>
+                  <pre/>
+                </article>
+              </li><li>
+                <a name="QT-LIB-GENERATOR:CMAKE-BUILD-SYSTEM"/>
+                <article>
+                  <header>
+                    <span>CLASS</span>
+                    <code>
+                      <h4><a href="#QT-LIB-GENERATOR:CMAKE-BUILD-SYSTEM">CMAKE-BUILD-SYSTEM</a></h4>
+                      <span></span>
+                      <span>()</span>
+                    </code>
+                  </header>
+                  <pre/>
+                </article>
+              </li><li>
+                <a name="QT-LIB-GENERATOR:DOWNLOAD-OP"/>
+                <article>
+                  <header>
+                    <span>CLASS</span>
+                    <code>
+                      <h4><a href="#QT-LIB-GENERATOR:DOWNLOAD-OP">DOWNLOAD-OP</a></h4>
+                      <span></span>
+                      <span>()</span>
+                    </code>
+                  </header>
+                  <pre/>
+                </article>
+              </li><li>
+                <a name="QT-LIB-GENERATOR:GENERATE-OP"/>
+                <article>
+                  <header>
+                    <span>CLASS</span>
+                    <code>
+                      <h4><a href="#QT-LIB-GENERATOR:GENERATE-OP">GENERATE-OP</a></h4>
+                      <span></span>
+                      <span>()</span>
+                    </code>
+                  </header>
+                  <pre/>
+                </article>
+              </li><li>
+                <a name="QT-LIB-GENERATOR:INSTALL-OP"/>
+                <article>
+                  <header>
+                    <span>CLASS</span>
+                    <code>
+                      <h4><a href="#QT-LIB-GENERATOR:INSTALL-OP">INSTALL-OP</a></h4>
+                      <span></span>
+                      <span>()</span>
+                    </code>
+                  </header>
+                  <pre/>
+                </article>
+              </li><li>
+                <a name="QT-LIB-GENERATOR:MAKE-BUILD-SYSTEM"/>
+                <article>
+                  <header>
+                    <span>CLASS</span>
+                    <code>
+                      <h4><a href="#QT-LIB-GENERATOR:MAKE-BUILD-SYSTEM">MAKE-BUILD-SYSTEM</a></h4>
+                      <span></span>
+                      <span>()</span>
+                    </code>
+                  </header>
+                  <pre/>
+                </article>
+              </li><li>
+                <a name="QT-LIB-GENERATOR:ORIGIN"/>
+                <article>
+                  <header>
+                    <span>GENERIC</span>
+                    <code>
+                      <h4><a href="#QT-LIB-GENERATOR:ORIGIN">ORIGIN</a></h4>
+                      <span></span>
+                      <span>(SYSTEM)</span>
+                    </code>
+                  </header>
+                  <pre/>
+                </article>
+              </li><li>
+                <a name="QT-LIB-GENERATOR:SHARED-LIBRARY-FILES"/>
+                <article>
+                  <header>
+                    <span>GENERIC</span>
+                    <code>
+                      <h4><a href="#QT-LIB-GENERATOR:SHARED-LIBRARY-FILES">SHARED-LIBRARY-FILES</a></h4>
+                      <span></span>
+                      <span>(SYSTEM)</span>
+                    </code>
+                  </header>
+                  <pre/>
+                </article>
+              </li><li>
+                <a name="QT-LIB-GENERATOR:*MAX-CPUS*"/>
+                <article>
+                  <header>
+                    <span>SPECIAL</span>
+                    <code>
+                      <h4><a href="#QT-LIB-GENERATOR:*MAX-CPUS*">*MAX-CPUS*</a></h4>
+                      <span></span>
+                      <span>()</span>
+                    </code>
+                  </header>
+                  <pre/>
+                </article>
+              </li></ul>
+          </li></ul>
+      </article>
+    </div>
+  </body>
+</html>

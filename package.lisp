@@ -23,7 +23,10 @@
    #:generate-op
    #:install-op
    #:build-system
+   #:make-build-system
+   #:cmake-build-system
    #:origin
    #:shared-library-files)
   ;; toolkit.lisp
-  (:export))
+  (:export
+   #:*max-cpus*))
