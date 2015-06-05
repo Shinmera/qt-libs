@@ -87,9 +87,11 @@
                     (with-simple-restart (retry "I installed it now, test again.")
                       (error "~a is required, but could not be found. Please ensure it is installed properly." name))))))
 
+(defvar *max-cpus* most-positive-fixnum)
 (defun cpu-count ()
-  (or (parse-integer (uiop:run-program "nproc" :ignore-error-status T :output :string) :junk-allowed T)
-      2))
+  (min (or (parse-integer (uiop:run-program "nproc" :ignore-error-status T :output :string) :junk-allowed T)
+           2)
+       *max-cpus*))
 
 (defun shared-library-file (&rest args &key host device directory name version defaults)
   (declare (ignore host device directory name version defaults))

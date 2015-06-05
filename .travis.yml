@@ -16,7 +16,9 @@ install:
   - curl https://raw.githubusercontent.com/luismbo/cl-travis/master/install.sh | bash
 
 script:
-  - cl -e '(ql:quickload :qt-libs)'
+  - cl -e '(ql:quickload :qt-lib-generator)'
+       -e '(setf qt-lib-generator::*max-cpus* 4)'
+       -e '(ql:quickload :qt-libs)'
        -e '(qt:make-qapplication)'
        -e '(format T "~&~%!!! WOAH IT WORKS !!!~&~%")'
 
