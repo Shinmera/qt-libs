@@ -28,12 +28,23 @@
   (status 2 "Cloning ~a" origin)
   (run-here "git clone ~s ~s" origin target))
 
+(defun ensure-system (system &optional (package system))
+  (unless (find-package package)
+    (let (#+sbcl (sb-ext:*muffled-warnings* 'style-warning))
+      #-quicklisp (asdf:load-system system)
+      #+quicklisp (ql:quickload system))))
+
+(defun checksum-string (vector)
+  (with-output-to-string (*standard-output*)
+    (map NIL (lambda (c) (write c :base 36)) vector)))
+
+(defun checksum-file (target)
+  (ensure-system :sha3)
+  (funcall (find-symbol (string :sha3-digest-file) :sha3) target))
+
 (defun download-file (url target)
   (status 1 "Downloading ~a" url)
-  (unless (find-package :drakma)
-    (let (#+sbcl (sb-ext:*muffled-warnings* 'style-warning))
-      #-quicklisp (asdf:load-system :drakma)
-      #+quicklisp (ql:quickload :drakma)))
+  (ensure-system :drakma)
   (with-open-file (output target :direction :output
                                  :if-exists :supersede
                                  :if-does-not-exist :create
@@ -47,6 +58,22 @@
                    while byte
                    do (write-byte byte output)))
         (close input)))))
+
+(defun safely-download-file (url target checksum)
+  (loop do (download-file url target)
+        until (cond (checksum
+                     (with-simple-restart (retry "Retry downloading.")
+                       (let ((file-checksum (checksum-file target)))
+                         (unless (equalp checksum file-checksum)
+                           (cerror "I am sure that this is fine."
+                                   "SHA3 file mismatch for ~s!~
+                           ~&Expected ~a~
+                           ~&got      ~a"
+                                   (uiop:native-namestring target) (checksum-string checksum) (checksum-string file-checksum)))
+                         (status 1 "Checksum test passed")
+                         T)))
+                    (T (status 1 "No checksum available, skipping test.")
+                       T))))
 
 (defun extract-tar-archive (from to &key (strip-folder))
   (test-prerequisite "tar" "tar")

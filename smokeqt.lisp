@@ -12,6 +12,12 @@
   :depends-on (:qt-build-prerequisites
                :smokegen))
 
+(defmethod checksum ((system (eql (asdf:find-system :smokeqt))))
+  (when (equal (asdf:component-version system) "4.14.3")
+    #(144 25 216 166 92 186 123 5 64 31 58 96 125 76 139 105 59 209 79 49 205 117
+      153 86 68 94 3 5 120 124 145 196 195 106 58 227 57 68 124 197 115 88 87 128
+      102 191 39 5 202 7 52 20 21 179 31 208 30 165 1 141 111 190 108 113)))
+
 (defmethod origin ((system (eql (asdf:find-system :smokeqt))))
   (let ((version (asdf:component-version system)))
     (if (eql version :git)

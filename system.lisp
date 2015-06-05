@@ -46,6 +46,11 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
 
 (defgeneric origin (system))
 
+(defgeneric checksum (system))
+
+(defmethod checksum ((system build-system))
+  NIL)
+
 (defgeneric shared-library-files (system))
 
 (defmethod shared-library-files ((system build-system))
@@ -68,7 +73,7 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
           (clone origin (first (asdf:output-files op system)))
           (with-temp-file (archive (make-pathname :name (format NIL "~a-archive" (asdf:component-name system))
                                                   :type "tar.xz" :defaults (uiop:temporary-directory)))
-            (download-file origin archive)
+            (safely-download-file origin archive (checksum system))
             (extract-tar-archive archive (uiop:pathname-directory-pathname
                                           (first (asdf:output-files op system)))
                                  :strip-folder T))))))
