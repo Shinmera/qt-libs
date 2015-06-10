@@ -25,7 +25,9 @@
 (defun determine-so-name (pathname)
   (Cond ((search ".so." (pathname-name pathname))
          (subseq (pathname-name pathname) 0 (search ".so." (pathname-name pathname))))
-        (T (pathname-name pathname))))
+        (T
+         (or (cl-ppcre:register-groups-bind (name) ("^(.+)\\.\\d\\.\\d\\.\\d$" (pathname-name pathname)) name)
+             (pathname-name pathname)))))
 
 (defun so-file (name &optional defaults)
   (make-pathname :type #+darwin "dylib" #+windows "dll" #-(or darwin windows) "so"

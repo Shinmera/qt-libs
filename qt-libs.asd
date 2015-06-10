@@ -15,6 +15,7 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
   :serial T
   :components ((:file "qt-libs"))
   :depends-on (:qt-lib-generator
+               :cl-ppcre
                :cffi))
 
 ;; Yes, I know this is ugly.
