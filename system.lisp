@@ -117,12 +117,16 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
   (list* (make-pathname :name "Makefile" :type NIL :defaults (first (call-next-method)))
          (call-next-method)))
 
-(defvar *ld-library-path* (let ((env (uiop:getenv "LD_LIBRARY_PATH")))
+(defvar *ld-library-path* (let ((env (uiop:getenv #-darwin "LD_LIBRARY_PATH"
+                                                  #+darwin "DYLD_LIBRARY_PATH")))
                             (if env (list env) ())))
 (defmethod asdf:perform ((op generate-op) (system make-build-system))
-  (let ((makefile (first (asdf:input-files op system))))
-    (run-here "env LD_LIBRARY_PATH=\"~{~a~^:~}\" make -j ~d -C ~s -f ~s~@[ ~a~]"
-              *ld-library-path* (cpu-count) (uiop:pathname-directory-pathname makefile)
+  (let ((makefile (first (asdf:input-files op system)))
+        (preamble #+unix (format NIL "env ~:[DYLD~;LD~]_LIBRARY_PATH=\"~{~a~^:~}\""
+                                 #-darwin T #+darwin NIL *ld-library-path*)
+                  #-unix ""))
+    (run-here "~amake -j ~d -C ~s -f ~s~@[ ~a~]"
+              preamble (cpu-count) (uiop:pathname-directory-pathname makefile)
               (format NIL "~a~@[.~a~]" (pathname-name makefile) (pathname-type makefile))
               (make-flags system))))
 
