@@ -1,4 +1,4 @@
-About qt-libs
+About qt-libs <a href="https://travis-ci.org/Shinmera/qt-libs"><img src="https://travis-ci.org/Shinmera/qt-libs.svg?branch=master" alt="Build Status" align="right" /></a>
 -------------
 Working with Qtools requires working with CommonQt. This in turn currently requires working with SmokeQt. However, SmokeQt is not easily available on all platforms (especially OS X). This project should simply ensure that the libraries are either available by your system directly, or that they are built automatically for you. This ensures that Qtools can be used directly with hopefully no further user intervention being necessary.
 
