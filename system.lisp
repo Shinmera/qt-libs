@@ -122,7 +122,7 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
                             (if env (list env) ())))
 (defmethod asdf:perform ((op generate-op) (system make-build-system))
   (let ((makefile (first (asdf:input-files op system)))
-        (preamble #+unix (format NIL "env ~:[DYLD~;LD~]_LIBRARY_PATH=\"~{~a~^:~}\""
+        (preamble #+unix (format NIL "env ~:[DYLD~;LD~]_LIBRARY_PATH=\"~{~a~^:~}\" "
                                  #-darwin T #+darwin NIL *ld-library-path*)
                   #-unix ""))
     (run-here "~amake -j ~d -C ~s -f ~s~@[ ~a~]"
