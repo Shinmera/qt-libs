@@ -14,15 +14,15 @@
 
 (defmethod checksum ((system (eql (asdf:find-system :smokeqt))))
   (when (equal (asdf:component-version system) "4.14.3")
-    #(144 25 216 166 92 186 123 5 64 31 58 96 125 76 139 105 59 209 79 49 205 117
-      153 86 68 94 3 5 120 124 145 196 195 106 58 227 57 68 124 197 115 88 87 128
-      102 191 39 5 202 7 52 20 21 179 31 208 30 165 1 141 111 190 108 113)))
+    #(224 180 103 0 232 206 67 238 107 227 209 116 203 47 228 220 251 157 102 33 10
+      145 38 49 155 172 201 51 121 201 174 198 98 5 111 127 7 108 136 197 90 249 51
+      101 56 36 248 236 101 217 125 125 100 111 129 241 96 16 201 181 210 71 6 158)))
 
 (defmethod origin ((system (eql (asdf:find-system :smokeqt))))
   (let ((version (asdf:component-version system)))
     (if (eql version :git)
-        "git://anongit.kde.org/smokeqt"
-        (format NIL "http://download.kde.org/stable/~a/src/smokeqt-~:*~a.tar.xz" version))))
+        "https://github.com/Shinmera/smokeqt.git"
+        (format NIL "https://github.com/Shinmera/smokeqt/archive/v~a.tar.gz" version))))
 
 (defmethod cmake-flags ((system (eql (asdf:find-system :smokeqt))))
   (let ((smoke-dir (first (asdf:output-files 'install-op (asdf:find-system :smokegen)))))
@@ -57,3 +57,4 @@
         return (values (list dir) T)
         finally (return (append (call-next-method)
                                 (list (shared-library-file :name "libsmokeqtcore" :defaults (relative-dir "install" "lib")))))))
+
