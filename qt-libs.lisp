@@ -61,6 +61,9 @@
 (cffi:define-foreign-library libsmokebase
   (t (:default "libsmokebase")))
 
+(cffi:define-foreign-library libsmokeqtcore
+  (t (:default "libsmokeqtcore")))
+
 (cffi:define-foreign-library libcommonqt
   (:linux (:or "libcommonqt.so.1.0.0" "libcommonqt.so.1" "libcommonqt.so"))
   (:windows "commonqt.dll")
@@ -77,6 +80,7 @@
     #+(and sbcl (not windows)) (sb-sys:enable-interrupt sb-unix:sigchld :default)
     ;; Do the loading.
     (cffi:use-foreign-library libsmokebase)
+    #+darwin (cffi:use-foreign-library libsmokeqtcore)
     (cffi:use-foreign-library libcommonqt)
     (when (find-package :qt) (setf (symbol-value (find-symbol "*LIBRARY-LOADED-P*" :QT)) T))
     (setf *libs-loaded* T)))
