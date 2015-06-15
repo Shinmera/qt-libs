@@ -12,7 +12,7 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
 (defmethod asdf:perform :before ((op build-system-op) c)
   (status 2 (asdf:action-description op c)))
 
-(defclass download-op (build-system-op asdf:non-propagating-operation)
+(defclass download-op (build-system-op #+:asdf3.1 asdf:non-propagating-operation)
   ())
 
 (defmethod asdf:action-description ((op download-op) c)
