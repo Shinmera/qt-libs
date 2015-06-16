@@ -100,10 +100,9 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
   (list (uiop:ensure-directory-pathname "install")))
 
 (defmethod asdf/plan:traverse-action ((plan asdf/plan:plan-traversal) op (c build-system) niip)
-  (let ((files (asdf:output-files op c)))
-    (when (or (asdf/plan::plan-forced plan)
-              (and files (loop for file in files never (probe-file file))))
-      (call-next-method))))
+  (when (or (asdf/plan::plan-forced plan)
+            (loop for file in (asdf:output-files op c) never (probe-file file)))
+    (call-next-method)))
 
 (defmethod asdf:component-depends-on ((op asdf:compile-op) (system build-system))
   `(,@(call-next-method)
