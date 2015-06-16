@@ -99,9 +99,10 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
 (defmethod asdf:output-files ((op install-op) (system build-system))
   (list (uiop:ensure-directory-pathname "install")))
 
-(defmethod asdf/plan:traverse-action (plan op (c build-system) niip)
+(defmethod asdf/plan:traverse-action ((plan asdf/plan:plan-traversal) op (c build-system) niip)
   (let ((files (asdf:output-files op c)))
-    (unless (and files (loop for file in files always (probe-file file)))
+    (when (or (asdf/plan::plan-forced plan)
+              (and files (loop for file in files never (probe-file file))))
       (call-next-method))))
 
 (defmethod asdf:component-depends-on ((op asdf:compile-op) (system build-system))
@@ -114,7 +115,7 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
    (install-flags :initarg :install-flags :initform NIL :accessor install-flags)))
 
 (defmethod asdf:input-files ((op generate-op) (system make-build-system))
-  (list* (make-pathname :name "Makefile" :type NIL :defaults (first (call-next-method)))
+  (list* (make-pathname :name "Makefile" :type NIL :defaults (car (last (call-next-method))))
          (call-next-method)))
 
 (defvar *ld-library-path* (let ((env (uiop:getenv #-darwin "LD_LIBRARY_PATH"
@@ -131,7 +132,7 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
               (make-flags system))))
 
 (defmethod asdf:perform ((op install-op) (system make-build-system))
-  (with-chdir ((first (asdf:input-files op system)))
+  (with-chdir ((car (last (asdf:input-files op system))))
     (run-here "make install~@[ ~a~]"
               (install-flags system))))
 
@@ -143,11 +144,11 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
   (list (make-pathname :name "CMakeLists" :type "txt" :defaults (uiop:ensure-directory-pathname "source"))))
 
 (defmethod asdf:input-files ((op generate-op) (system cmake-build-system))
-  (list (make-pathname :name "Makefile" :type NIL :defaults (first (asdf:output-files op system)))
-        (make-pathname :name "CMakeLists" :type "txt" :defaults (first (asdf:output-files 'download-op system)))))
+  (list (make-pathname :name "Makefile" :type NIL :defaults (car (last (asdf:output-files op system))))
+        (make-pathname :name "CMakeLists" :type "txt" :defaults (car (last (asdf:output-files 'download-op system))))))
 
 (defmethod asdf:perform ((op generate-op) (system cmake-build-system))
-  (with-chdir ((first (asdf:output-files op system)))
+  (with-chdir ((car (last (asdf:output-files op system))))
     (run-here "cmake ~s~@[ ~a~]"
               (uiop:pathname-directory-pathname (second (asdf:input-files op system)))
               (cmake-flags system)))

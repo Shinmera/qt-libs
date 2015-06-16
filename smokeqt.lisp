@@ -41,8 +41,8 @@
                                    *ld-library-path*)))
     (call-next-method)))
 
-(defmethod asdf:output-files ((op generate-op) (system (eql (asdf:find-system :smokegen))))
-  (list* (shared-library-file :name "libsmokeqtcore" :defaults (relative-dir "generate" "bin"))
+(defmethod asdf:output-files ((op generate-op) (system (eql (asdf:find-system :smokeqt))))
+  (list* (shared-library-file :name "libsmokeqtcore" :defaults (relative-dir "generate" "qtcore"))
          (call-next-method)))
 
 (defun smokeqt-on-path-p (path)
