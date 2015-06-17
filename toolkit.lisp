@@ -23,8 +23,9 @@
     (uiop:run-program program :output T :error-output T)))
 
 (defun run-here (string &rest format-args)
-  (status 1 "Running ~a" program)
-  (apply #'run string format-args))
+  (let ((program (apply #'format NIL string (mapcar #'externalize format-args))))
+    (status 1 "Running ~a" program)
+    (uiop:run-program program :output T :error-output T)))
 
 (defun clone (origin target)
   (test-prerequisite "GIT" "git")
