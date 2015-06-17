@@ -18,10 +18,13 @@
           (case n (0 ">") (1 " ->") (2 " ==>") (T "  >>>"))
           (apply #'format NIL string format-args)))
 
-(defun run-here (string &rest format-args)
+(defun run (string &rest format-args)
   (let ((program (apply #'format NIL string (mapcar #'externalize format-args))))
-    (status 1 "Running ~a" program)
     (uiop:run-program program :output T :error-output T)))
+
+(defun run-here (string &rest format-args)
+  (status 1 "Running ~a" program)
+  (apply #'run string format-args))
 
 (defun clone (origin target)
   (test-prerequisite "GIT" "git")
@@ -123,3 +126,45 @@
 (defun shared-library-file (&rest args &key host device directory name version defaults)
   (declare (ignore host device directory name version defaults))
   (apply #'make-pathname :type #+windows "dll" #+darwin "dylib" #-(or windows darwin) "so" args))
+
+(defun filename (pathname)
+  (format NIL "~a.~a" (pathname-name pathname) (pathname-type pathname)))
+
+(defun dylib-dependencies (pathname)
+  (with-chdir (pathname)
+    (let ((lines (cl-ppcre:split "\\s*\\n\\s*" (uiop:run-program (format NIL "otool -L ~s" (filename pathname)) :output :string))))
+      (mapcar (lambda (line)
+                (cl-ppcre:register-groups-bind (name) ("^(.*) \\(compatibility version" line)
+                  name))
+              (cdr lines)))))
+
+(defun dylib-set-install-name (pathname name)
+  (with-chdir (pathname)
+    (run "install_name_tool -id ~s ~s" name (filename pathname))))
+
+(defun dylib-set-dependency-name (pathname dependency name)
+  (with-chdir (pathname)
+    (run "install_name_tool -change ~s ~s ~s" dependency name (filename pathname))))
+
+;; This is stupid, but I can't be bothered to do better.
+(defun find-similar (pathname files)
+  (let ((stripped (cl-ppcre:register-groups-bind (NIL name) ("(lib)?(.*?)\\." (filename pathname)) name)))
+    (loop for file in files
+          when (search stripped (filename file))
+          return file)))
+
+(defun fix-dylib-paths (pathname)
+  ;; Primitively set the install name to the filename
+  (dylib-set-install-name pathname (filename pathname))
+  ;; Primitively change relative paths to use @loader-path and matching name in dir.
+  (let ((files (remove "dylib" (uiop:directory-files pathname) :key #'pathname-type :test-not #'string=)))
+    (dolist (dep (dylib-dependencies pathname))
+      (let ((dep (pathname dep)))
+        (when (uiop:relative-pathname-p dep)
+          (dylib-set-dependency-name
+           pathname dep
+           (let ((corresponding (find-similar dep files)))
+             (if corresponding
+                 (format NIL "@loader_path/~a" (filename corresponding))
+                 (filename dep))))))))
+  pathname)

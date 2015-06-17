@@ -23,7 +23,7 @@
         (T (pathname-type pathname))))
 
 (defun determine-so-name (pathname)
-  (Cond ((search ".so." (pathname-name pathname))
+  (cond ((search ".so." (pathname-name pathname))
          (subseq (pathname-name pathname) 0 (search ".so." (pathname-name pathname))))
         (T
          (or (cl-ppcre:register-groups-bind (name) ("^(.+)\\.\\d\\.\\d\\.\\d$" (pathname-name pathname)) name)
@@ -47,15 +47,23 @@
           (uiop:copy-file input output))))))
 
 (defun ensure-standalone-libs (&key force (standalone-dir *standalone-libs-dir*))
-  (when (or force (not (uiop:file-exists-p (so-file "libsmokebase" standalone-dir))))
-    (copy-libs (qt-lib-generator:shared-library-files (asdf:find-system :smokegen)) standalone-dir
-               :test (lambda (file) (search "smokebase" (pathname-name file)))))
-  (when (or force (not (uiop:file-exists-p (so-file "libsmokeqtgui" standalone-dir))))
-    (copy-libs (qt-lib-generator:shared-library-files (asdf:find-system :smokeqt)) standalone-dir
-               :test (lambda (file) (search "smoke" (pathname-name file)))))
-  (when (or force (not (uiop:file-exists-p (so-file "commonqt" standalone-dir))))
-    (copy-libs (qt-lib-generator:shared-library-files (asdf:find-system :libcommonqt)) standalone-dir
-               :test (lambda (file) (search "commonqt" (pathname-name file)))))
+  (let ((dirty force))
+    (when (or force (not (uiop:file-exists-p (so-file "libsmokebase" standalone-dir))))
+      (copy-libs (qt-lib-generator:shared-library-files (asdf:find-system :smokegen)) standalone-dir
+                 :test (lambda (file) (search "smokebase" (pathname-name file))))
+      (setf dirty T))
+    (when (or force (not (uiop:file-exists-p (so-file "libsmokeqtgui" standalone-dir))))
+      (copy-libs (qt-lib-generator:shared-library-files (asdf:find-system :smokeqt)) standalone-dir
+                 :test (lambda (file) (search "smoke" (pathname-name file))))
+      (setf dirty T))
+    (when (or force (not (uiop:file-exists-p (so-file "commonqt" standalone-dir))))
+      (copy-libs (qt-lib-generator:shared-library-files (asdf:find-system :libcommonqt)) standalone-dir
+                 :test (lambda (file) (search "commonqt" (pathname-name file))))
+      (setf dirty T))
+    #+darwin
+    (when dirty
+      (dolist (file (uiop:directory-files standalone-dir))
+        (qt-lib-generator:fix-dylib-paths file))))
   standalone-dir)
 
 (cffi:define-foreign-library libsmokebase

@@ -20,4 +20,5 @@
                (:file "smokegen")
                (:file "smokeqt")
                (:file "commonqt"))
-  :depends-on (:trivial-features))
+  :depends-on (:trivial-features
+               :cl-ppcre))

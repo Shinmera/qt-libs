@@ -29,4 +29,22 @@
    #:shared-library-files)
   ;; toolkit.lisp
   (:export
-   #:*max-cpus*))
+   #:*max-cpus*
+   #:externalize
+   #:run-here
+   #:checksum-string
+   #:checksum-file
+   #:download-file
+   #:safely-download-file
+   #:extract-tar-archive
+   #:relative-dir
+   #:with-chdir
+   #:with-temp-file
+   #:application-available-p
+   #:test-prerequisite
+   #:shared-library-file
+   #:filename
+   #:dylib-dependencies
+   #:dylib-set-install-name
+   #:dylib-set-dependency-name
+   #:fix-dylib-paths))
