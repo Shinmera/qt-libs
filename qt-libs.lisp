@@ -78,12 +78,9 @@
   (t (:default "libcommonqt")))
 
 (defvar *libs-loaded* NIL)
-(defun load-libcommonqt (&key force (ensure-libs T))
+(defun load-libcommonqt (&key force)
   (when (or (not *libs-loaded*) force)
-    (when ensure-libs
-      (pushnew *standalone-libs-dir* cffi:*foreign-library-directories*)
-      (asdf:load-system :libcommonqt)
-      (ensure-standalone-libs))
+    (pushnew *standalone-libs-dir* cffi:*foreign-library-directories*)
     ;; See QT::LOAD-LIBCOMMONQT for an explanation of this.
     #+(and sbcl (not windows)) (sb-sys:enable-interrupt sb-unix:sigchld :default)
     ;; Do the loading.
