@@ -34,8 +34,8 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
 ;; throw up in the following method definitions.
 #+quicklisp
 (progn
-  (ql-dist:ensure-installed (ql-dist:find-system :trivial-features))
-  (ql-dist:ensure-installed (ql-dist:find-system :qt)))
+  (ql-dist:ensure-installed (ql-dist:find-system "trivial-features"))
+  (ql-dist:ensure-installed (ql-dist:find-system "qt")))
 
 (flet ((symbf (package name)
          (fdefinition (find-symbol (string name) package)))
