@@ -29,10 +29,6 @@
          (or (cl-ppcre:register-groups-bind (name) ("^(.+)\\.\\d\\.\\d\\.\\d$" (pathname-name pathname)) name)
              (pathname-name pathname)))))
 
-(defun so-file (name &optional defaults)
-  (make-pathname :type #+darwin "dylib" #+windows "dll" #-(or darwin windows) "so"
-                 :name name :defaults defaults))
-
 (defun copy-libs (from to &key (test (constantly T)))
   (dolist (input (etypecase from
                    (list from)
@@ -46,13 +42,16 @@
         (unless (uiop:file-exists-p output)
           (uiop:copy-file input output))))))
 
+(defun so-file (name defaults)
+  (qt-lib-generator:shared-library-file :name name :defaults defaults))
+
 (defun ensure-standalone-libs (&key force (standalone-dir *standalone-libs-dir*))
   (let ((dirty force))
-    (when (or force (not (uiop:file-exists-p (so-file "libsmokebase" standalone-dir))))
+    (when (or force (not (uiop:file-exists-p (so-file "smokebase" standalone-dir))))
       (copy-libs (qt-lib-generator:shared-library-files (asdf:find-system :smokegen)) standalone-dir
                  :test (lambda (file) (search "smokebase" (pathname-name file))))
       (setf dirty T))
-    (when (or force (not (uiop:file-exists-p (so-file "libsmokeqtgui" standalone-dir))))
+    (when (or force (not (uiop:file-exists-p (so-file "smokeqtgui" standalone-dir))))
       (copy-libs (qt-lib-generator:shared-library-files (asdf:find-system :smokeqt)) standalone-dir
                  :test (lambda (file) (search "smoke" (pathname-name file))))
       (setf dirty T))
@@ -67,9 +66,11 @@
   standalone-dir)
 
 (cffi:define-foreign-library libsmokebase
+  (:windows "smokebase.dll")
   (t (:default "libsmokebase")))
 
 (cffi:define-foreign-library libsmokeqtcore
+  (:windows "smokeqtcore.dll")
   (t (:default "libsmokeqtcore")))
 
 (cffi:define-foreign-library libcommonqt

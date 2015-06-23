@@ -125,8 +125,10 @@
        *max-cpus*))
 
 (defun shared-library-file (&rest args &key host device directory name version defaults)
-  (declare (ignore host device directory name version defaults))
-  (apply #'make-pathname :type #+windows "dll" #+darwin "dylib" #-(or windows darwin) "so" args))
+  (declare (ignore host device directory version defaults))
+  (apply #'make-pathname :type #+windows "dll" #+darwin "dylib" #-(or windows darwin) "so"
+                         :name #-windows (concatenate 'string "lib" name) #+windows name
+                               args))
 
 (defun filename (pathname)
   (format NIL "~a.~a" (pathname-name pathname) (pathname-type pathname)))

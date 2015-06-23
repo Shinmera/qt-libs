@@ -60,8 +60,7 @@
   T)
 
 (defmethod asdf:output-files ((op generate-op) (system (eql (asdf:find-system :libcommonqt))))
-  (values (list (shared-library-file :name #-windows "libcommonqt" #+windows "commonqt"
-                                     :defaults (first (asdf:output-files 'download-op system))))
+  (values (list (shared-library-file :name "commonqt" :defaults (first (asdf:output-files 'download-op system))))
           T))
 
 (defmethod asdf:output-files ((op install-op) (system (eql (asdf:find-system :libcommonqt))))

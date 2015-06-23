@@ -42,19 +42,20 @@
     (call-next-method)))
 
 (defmethod asdf:output-files ((op generate-op) (system (eql (asdf:find-system :smokeqt))))
-  (list* (shared-library-file :name "libsmokeqtcore" :defaults (relative-dir "generate" "qtcore"))
+  (list* (shared-library-file :name "smokeqtcore" :defaults (relative-dir "generate" "qtcore"))
          (call-next-method)))
 
 (defun smokeqt-on-path-p (path)
   (uiop:file-exists-p
-   (shared-library-file :name "libsmokeqtcore" :defaults (relative-dir path "lib"))))
+   (shared-library-file :name "smokeqtcore" :defaults (relative-dir path "lib"))))
 
 (defmethod asdf:output-files ((op install-op) (system (eql (asdf:find-system :smokeqt))))
   (loop for dir in '(#+:unix #p"/usr"
                      #+:unix #p"/usr/local"
-                     #+:windows #p"C:/Program Files/KDE/smokeqt/")
+                     #+(and x86-64 windows) #p"C:/Program Files/smokeqt/"
+                     #+(and x86 windows) #p"C:/Program Files (x86)/smokeqt/")
         when (smokeqt-on-path-p dir)
         return (values (list dir) T)
         finally (return (append (call-next-method)
-                                (list (shared-library-file :name "libsmokeqtcore" :defaults (relative-dir "install" "lib")))))))
+                                (list (shared-library-file :name "smokeqtcore" :defaults (relative-dir "install" "lib")))))))
 

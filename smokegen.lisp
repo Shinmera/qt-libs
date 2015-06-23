@@ -37,9 +37,10 @@
          (call-next-method)))
 
 (defmethod asdf:output-files ((op install-op) (system (eql (asdf:find-system :smokegen))))
-  (loop for dir in '(#+:unix #p"/usr"
-                     #+:unix #p"/usr/local"
-                     #+:windows #p"C:/Program Files/KDE/smokegen/")
+  (loop for dir in '(#+unix #p"/usr"
+                     #+unix #p"/usr/local"
+                     #+(and x86-64 windows) #p"C:/Program Files/smokegenerator/"
+                     #+(and x86 windows) #p"C:/Program Files (x86)/smokegenerator/")
         when (smokegen-on-path-p dir)
         return (values (list dir) T)
         finally (return (append (call-next-method)
