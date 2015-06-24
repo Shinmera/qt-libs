@@ -48,17 +48,17 @@
 (defun ensure-standalone-libs (&key force (standalone-dir *standalone-libs-dir*))
   (let ((dirty force))
     (when (or force (not (uiop:file-exists-p (so-file "smokebase" standalone-dir))))
-      (asdf:compile-system :smokegen)
+      (qt-lib-generator:install-system :smokegen)
       (copy-libs (qt-lib-generator:shared-library-files (asdf:find-system :smokegen)) standalone-dir
                  :test (lambda (file) (search "smokebase" (pathname-name file))))
       (setf dirty T))
     (when (or force (not (uiop:file-exists-p (so-file "smokeqtgui" standalone-dir))))
-      (asdf:compile-system :smokeqt)
+      (qt-lib-generator:install-system :smokeqt)
       (copy-libs (qt-lib-generator:shared-library-files (asdf:find-system :smokeqt)) standalone-dir
                  :test (lambda (file) (search "smoke" (pathname-name file))))
       (setf dirty T))
     (when (or force (not (uiop:file-exists-p (so-file "commonqt" standalone-dir))))
-      (asdf:compile-system :libcommonqt)
+      (qt-lib-generator:install-system :libcommonqt)
       (copy-libs (qt-lib-generator:shared-library-files (asdf:find-system :libcommonqt)) standalone-dir
                  :test (lambda (file) (search "commonqt" (pathname-name file))))
       (setf dirty T))
