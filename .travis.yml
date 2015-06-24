@@ -18,6 +18,9 @@ install:
 script:
   - cl -e '(ql:quickload :qt-lib-generator)'
        -e '(setf qt-lib-generator::*max-cpus* 4)'
+       -e '(asdf:compile-system :smokegen)'
+       -e '(asdf:compile-system :smokeqt)'
+       -e '(asdf:compile-system :libcommonqt)'
        -e '(ql:quickload :qt-libs)'
        -e '(qt:make-qapplication)'
        -e '(format T "~&~%!!! WOAH IT WORKS !!!~&~%")'
