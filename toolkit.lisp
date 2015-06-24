@@ -72,8 +72,8 @@
                          (unless (equalp checksum file-checksum)
                            (cerror "I am sure that this is fine."
                                    "SHA3 file mismatch for ~s!~
-                           ~&Expected ~a~
-                           ~&got      ~a"
+                                  ~&Expected ~a~
+                                  ~&got      ~a"
                                    (uiop:native-namestring target) (checksum-string checksum) (checksum-string file-checksum)))
                          (status 1 "Checksum test passed")
                          T)))
@@ -159,8 +159,8 @@
 (defun shared-library-file (&rest args &key host device directory name version defaults)
   (declare (ignore host device directory version))
   (apply #'make-pathname :type #+windows "dll" #+darwin "dylib" #-(or windows darwin) "so"
-                         :name #-windows (or (and name (concatenate 'string "lib" name))
-                                             (pathname-name defaults)) #+windows name
+                         :name (or (and name #-windows (concatenate 'string "lib" name))
+                                   (pathname-name defaults))
                                args))
 
 (defun filetype (pathname)
