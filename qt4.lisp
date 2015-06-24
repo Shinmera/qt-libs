@@ -10,7 +10,7 @@
   :class build-system
   :version "4.8.7")
 
-(defmethod origin ((c (eql (asdf:find-system :qt4))))
+(defmethod origin ((c (eql (asdf:find-system :qt4))) &key type)
   NIL)
 
 (defmethod asdf:perform ((op generate-op) (c (eql (asdf:find-system :qt4))))

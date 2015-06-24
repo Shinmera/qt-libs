@@ -12,7 +12,14 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
 (defmethod asdf:perform :before ((op build-system-op) c)
   (status 2 (asdf:action-description op c)))
 
-(defclass download-op (build-system-op #+:asdf3.1 asdf:non-propagating-operation)
+(defclass source-type-dependant-op (build-system-op)
+  ((source-type :initarg :source-type :initform :sources :accessor source-type)))
+
+;; I hate ASDF.
+(defmethod asdf/operation:operation-original-initargs ((op source-type-dependant-op))
+  `(:source-type ,(source-type op)))
+
+(defclass download-op (source-type-dependant-op #+:asdf3.1 asdf:non-propagating-operation)
   ())
 
 (defmethod asdf:action-description ((op download-op) c)
@@ -31,8 +38,13 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
 (defmethod asdf:perform ((op generate-op) c)
   NIL)
 
-(defclass install-op (build-system-op asdf:selfward-operation)
-  ((asdf:selfward-operation :initform 'generate-op :allocation :class)))
+(defclass install-op (source-type-dependant-op asdf:selfward-operation)
+  ((asdf:selfward-operation :initform NIL :accessor selfward-op)))
+
+(defmethod initialize-instance :after ((op install-op) &key)  
+  (if (eql (source-type op) :compiled)
+      (setf (selfward-op op) (asdf:make-operation 'download-op :source-type (source-type op)))
+      (setf (selfward-op op) (asdf:make-operation 'generate-op))))
 
 (defmethod asdf:action-description ((op install-op) c)
   (format nil "~@<installing ~3i~_~A~@:>" c))
@@ -42,13 +54,16 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
 
 
 (defclass build-system (asdf:system)
-  ())
+  ((proj-version :initarg :pversion :accessor version)))
 
-(defgeneric origin (system))
+(defgeneric origin (system &key type))
 
-(defgeneric checksum (system))
+(defmethod origin ((system build-system) &key (type :sources))
+  (project-url (asdf:component-name system) (version system) :type type))
 
-(defmethod checksum ((system build-system))
+(defgeneric checksum (system &key type))
+
+(defmethod checksum ((system build-system) &key type)
   NIL)
 
 (defgeneric shared-library-files (system))
@@ -56,8 +71,7 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
 (defmethod shared-library-files ((system build-system))
   (mapcar #'uiop:resolve-symlinks
           (uiop:directory-files (relative-dir (first (asdf:output-files 'install-op system)) "lib")
-                                (make-pathname :type #+darwin "dylib" #+windows "dll" #-(or windows darwin) "so"
-                                               :defaults uiop:*wild-file*))))
+                                (shared-library-file :defaults uiop:*wild-file*))))
 
 (defmethod asdf:component-pathname ((system build-system))
   (relative-dir (call-next-method) (asdf:component-name system)))
@@ -66,17 +80,19 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
   (list))
 
 (defmethod asdf:perform ((op download-op) (system build-system))
-  (let ((version (asdf:component-version system))
-        (origin (origin system)))
+  (let* ((type (source-type op))
+         (origin (origin system :type type)))
     (when origin
-      (if (eql version :git)
-          (clone origin (first (asdf:output-files op system)))
-          (with-temp-file (archive (make-pathname :name (format NIL "~a-archive" (asdf:component-name system))
-                                                  :type "tar.xz" :defaults (uiop:temporary-directory)))
-            (safely-download-file origin archive (checksum system))
-            (extract-tar-archive archive (uiop:pathname-directory-pathname
-                                          (first (asdf:output-files op system)))
-                                 :strip-folder T))))))
+      (ecase type
+        (:git
+         (clone origin (first (asdf:output-files op system))))
+        ((:sources :compiled)
+         (with-temp-file (archive (make-pathname :name (format NIL "~a-archive" (asdf:component-name system))
+                                                 :type (url-filetype origin) :defaults (uiop:temporary-directory)))
+           (safely-download-file origin archive (checksum system :type type))
+           (extract-archive archive (uiop:pathname-directory-pathname
+                                     (first (asdf:output-files op system)))
+                            :strip-folder (eql type :sources))))))))
 
 (defmethod asdf:output-files ((op download-op) (system build-system))
   (list (uiop:ensure-directory-pathname "source")))
@@ -95,6 +111,14 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
 
 (defmethod asdf:perform ((op install-op) (system build-system))
   (error "Need to implement ASDF:PERFORM on (~a ~a)" op system))
+
+(defmethod asdf:perform :around ((op install-op) (system build-system))
+  (if (eql (source-type op) :compiled)
+      (let ((dir (relative-dir (first (asdf:output-files op system)) "lib")))
+        (ensure-directories-exist dir)
+        (dolist (file (uiop:directory-files (first (asdf:output-files 'download-op system))))
+          (uiop:copy-file file (make-pathname :directory (pathname-directory dir) :defaults file))))
+      (call-next-method)))
 
 (defmethod asdf:output-files ((op install-op) (system build-system))
   (list (uiop:ensure-directory-pathname "install")))
@@ -140,7 +164,9 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
   ((cmake-flags :initarg :cmake-flags :initform NIL :accessor cmake-flags)))
 
 (defmethod asdf:output-files ((op download-op) (system cmake-build-system))
-  (list (make-pathname :name "CMakeLists" :type "txt" :defaults (uiop:ensure-directory-pathname "source"))))
+  (if (eql (source-type op) :compiled)
+      (call-next-method)
+      (list (make-pathname :name "CMakeLists" :type "txt" :defaults (uiop:ensure-directory-pathname "source")))))
 
 (defmethod asdf:input-files ((op generate-op) (system cmake-build-system))
   (list (make-pathname :name "Makefile" :type NIL :defaults (car (last (asdf:output-files op system))))
@@ -172,3 +198,7 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
   (typecase op
     (install-op (call-next-method))
     (T NIL)))
+
+
+(defun install-system (system &rest args &key (source-type :compiled))
+  (apply #'asdf:operate (asdf:make-operation 'install-op :source-type source-type) system args))

@@ -8,20 +8,20 @@
 
 (asdf:defsystem :smokegen
   :class cmake-build-system
-  :version "4.14.3"
+  :pversion "qt-libs1.1.0"
   :depends-on (:qt-build-prerequisites))
 
-(defmethod checksum ((system (eql (asdf:find-system :smokegen))))
-  (when (equal (asdf:component-version system) "4.14.3")
-    #(64 75 137 70 243 85 119 42 252 132 226 155 84 3 129 3 171 74 159 98 162 60
-      148 16 140 103 229 50 184 34 161 147 45 246 216 48 8 99 222 183 127 92 253
-      105 161 33 107 208 251 111 171 171 255 94 2 89 129 161 232 176 21 154 3 53)))
-
-(defmethod origin ((system (eql (asdf:find-system :smokegen))))
-  (let ((version (asdf:component-version system)))
-    (if (eql version :git)
-        "https://github.com/Shinmera/smokegen.git"
-        (format NIL "https://github.com/Shinmera/smokegen/archive/v~a.tar.gz" version))))
+(defmethod checksum ((system (eql (asdf:find-system :smokegen))) &key type)
+  (when (equal (version system) "qt-libs1.1.0")
+    (case type
+      (:sources
+       #(41 54 7 141 196 229 30 13 214 153 125 233 202 119 253 150 153 49 254 242 67
+         196 235 211 217 147 84 210 23 55 7 88 98 54 129 2 46 215 9 38 241 63 107 44
+         171 30 59 153 42 153 233 88 46 191 83 122 12 152 253 45 249 7 228 108))
+      (:compiled
+       #(4 48 91 203 66 39 36 70 228 106 47 167 250 58 199 88 14 109 177 70 245 106
+         129 156 125 205 203 118 77 39 108 48 47 2 188 72 198 255 53 201 129 19 241
+         156 187 204 113 79 16 213 120 199 86 209 180 228 15 72 41 47 137 239 228 101)))))
 
 (defmethod cmake-flags ((system (eql (asdf:find-system :smokegen))))
   (format NIL "-DCMAKE_BUILD_TYPE=Release ~

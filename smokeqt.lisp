@@ -8,21 +8,21 @@
 
 (asdf:defsystem :smokeqt
   :class cmake-build-system
-  :version "4.14.3"
+  :pversion "qt-libs1.1.0"
   :depends-on (:qt-build-prerequisites
                :smokegen))
 
-(defmethod checksum ((system (eql (asdf:find-system :smokeqt))))
-  (when (equal (asdf:component-version system) "4.14.3")
-    #(224 180 103 0 232 206 67 238 107 227 209 116 203 47 228 220 251 157 102 33 10
-      145 38 49 155 172 201 51 121 201 174 198 98 5 111 127 7 108 136 197 90 249 51
-      101 56 36 248 236 101 217 125 125 100 111 129 241 96 16 201 181 210 71 6 158)))
-
-(defmethod origin ((system (eql (asdf:find-system :smokeqt))))
-  (let ((version (asdf:component-version system)))
-    (if (eql version :git)
-        "https://github.com/Shinmera/smokeqt.git"
-        (format NIL "https://github.com/Shinmera/smokeqt/archive/v~a.tar.gz" version))))
+(defmethod checksum ((system (eql (asdf:find-system :smokeqt))) &key type)
+  (when (equal (version system) "qt-libs1.1.0")
+    (case type
+      (:sources
+       #(244 217 211 112 254 21 112 251 160 77 229 246 173 212 58 20 82 184 248 51 110
+         132 232 164 90 47 193 76 154 115 127 116 211 102 156 66 131 3 1 217 40 8 24
+         78 40 99 103 67 63 123 216 194 1 111 95 116 69 53 26 211 101 42 220 72))
+      (:compiled
+       #(60 72 139 55 133 111 84 7 252 198 150 215 29 68 216 96 216 75 29 36 40 206 12
+         175 197 6 191 203 140 102 18 172 184 213 34 233 135 7 81 210 217 179 62 134
+         157 48 216 197 226 31 20 124 85 224 248 241 38 235 153 181 10 47 167 23)))))
 
 (defmethod cmake-flags ((system (eql (asdf:find-system :smokeqt))))
   (let ((smoke-dir (first (asdf:output-files 'install-op (asdf:find-system :smokegen)))))

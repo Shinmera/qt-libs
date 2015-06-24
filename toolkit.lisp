@@ -61,7 +61,8 @@
              (loop for byte = (read-byte input NIL NIL)
                    while byte
                    do (write-byte byte output)))
-        (close input)))))
+        (close input))))
+  target)
 
 (defun safely-download-file (url target checksum)
   (loop do (download-file url target)
@@ -77,12 +78,43 @@
                          (status 1 "Checksum test passed")
                          T)))
                     (T (status 1 "No checksum available, skipping test.")
-                       T))))
+                       T)))
+  target)
+
+(defun upwards-file (file)
+  (cond ((uiop:directory-pathname-p file)
+         (let ((dirname (car (last (pathname-directory file))))
+               (rootpath (copy-list (butlast (pathname-directory file) 2))))
+           (setf (cdr (last rootpath)) (list dirname))
+           (make-pathname :directory rootpath :defaults file)))
+        (T
+         (let ((rootpath (copy-list (butlast (pathname-directory file)))))
+           (make-pathname :directory rootpath :defaults file)))))
+
+(defun extract-zip-archive (from to &key (strip-folder))
+  (ensure-system :zip)
+  (funcall (find-symbol (string :unzip) :zip) from to)
+  (when strip-folder
+    (let ((sub (first (uiop:subdirectories to))))
+      (dolist (file (append (uiop:directory-files sub) (uiop:subdirectories sub)))
+        (rename-file file (upwards-file file)))
+      (uiop:delete-file-if-exists sub)))
+  to)
 
 (defun extract-tar-archive (from to &key (strip-folder))
   (test-prerequisite "tar" "tar")
   (status 2 "Extracting ~a" (uiop:native-namestring from))
-  (run-here "tar ~@[--strip-components=1 ~*~] -xpf ~s -C ~s" strip-folder from to))
+  (run-here "tar ~@[--strip-components=1 ~*~] -xpf ~s -C ~s" strip-folder from to)
+  to)
+
+(defun extract-archive (from to &key (strip-folder))
+  (let ((type (filetype from)))
+    (cond ((or (string-equal type "gz")
+               (string-equal type "xz"))
+           (extract-tar-archive from to :strip-folder strip-folder))
+          ((string-equal type "zip")
+           (extract-zip-archive from to :strip-folder strip-folder))
+          (T (error "Don't know how to extract ~s" from)))))
 
 (defun relative-dir (relative &rest subdirs)
   (loop for sub in subdirs
@@ -125,10 +157,16 @@
        *max-cpus*))
 
 (defun shared-library-file (&rest args &key host device directory name version defaults)
-  (declare (ignore host device directory version defaults))
+  (declare (ignore host device directory version))
   (apply #'make-pathname :type #+windows "dll" #+darwin "dylib" #-(or windows darwin) "so"
-                         :name #-windows (concatenate 'string "lib" name) #+windows name
+                         :name #-windows (or (and name (concatenate 'string "lib" name))
+                                             (pathname-name defaults)) #+windows name
                                args))
+
+(defun filetype (pathname)
+  (let* ((type (pathname-type pathname))
+         (pos (position #\. type :from-end T)))
+    (if pos (subseq type (1+ pos)) type)))
 
 (defun filename (pathname)
   (format NIL "~a.~a" (pathname-name pathname) (pathname-type pathname)))
@@ -171,3 +209,26 @@
                  (format NIL "@loader_path/~a" (filename corresponding))
                  (filename dep))))))))
   pathname)
+
+(defun url-filetype (url)
+  (subseq url (1+ (or (position #\. url :start (or (position #\/ url :from-end T) 0))
+                      (error "Unable to detect filetype for ~s" url)))))
+
+(defun project-url (project version &key type)
+  (ecase type
+    (:git (project-git-url project))
+    (:compiled (project-release-url project version))
+    (:sources (project-sources-url project version))))
+
+(defun project-git-url (project)
+  (format NIL "https://github.com/Shinmera/~a.git" project))
+
+(defun project-sources-url (project version)
+  (format NIL "https://github.com/Shinmera/~a/archive/~a.zip" project version))
+
+(defun project-release-url (project version)
+  (format NIL "https://github.com/Shinmera/~a/releases/download/~a/~a~a-~a.zip"
+          project version
+          #+linux "lin" #+darwin "mac" #+windows "win" #-(or linux darwin windows) (error "Platform not supported.")
+          #+x86-64 "64" #+x86 "32" #-(or x86-64 x86) (error "Platform not supported.")
+          project))

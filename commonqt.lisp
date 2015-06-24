@@ -8,6 +8,7 @@
 
 (asdf:defsystem :libcommonqt
   :class build-system
+  :pversion "qt-libs1.1.0"
   :depends-on (:qt-build-prerequisites
                :qt4
                :smokegen
@@ -28,17 +29,17 @@
         (format stream "~&~a" contents))
       file)))
 
-(defmethod asdf:perform ((op download-op) (system (eql (asdf:find-system :libcommonqt))))
-  #+quicklisp
-  (unless (ql-dist:installedp (ql-dist:find-system "qt"))
-    (ql-dist:install (ql-dist:find-system "qt")))
-  #-quicklisp
-  (unless (asdf:find-system :qt)
-    (cerror "CommonQt is set up." "Please download commonqt and register it with ASDF.")))
-
-(defmethod asdf:output-files ((op download-op) (system (eql (asdf:find-system :libcommonqt))))
-  (values (list (asdf:system-source-directory :qt))
-          T))
+(defmethod checksum ((system (eql (asdf:find-system :libcommonqt))) &key type)
+  (when (equal (version system) "qt-libs1.1.0")
+    (case type
+      (:sources
+       #(210 129 55 59 150 119 82 240 111 58 140 131 183 25 2 169 114 237 32 96 207
+         154 215 185 105 96 159 30 76 249 211 34 113 72 121 244 51 130 23 243 28 50
+         206 239 200 229 216 181 92 149 226 85 224 62 177 9 43 69 81 61 159 87 208 195))
+      (:compiled
+       #(191 101 105 12 81 86 41 121 10 34 196 243 229 31 255 222 79 138 140 84 115
+         143 58 79 184 126 125 80 13 41 25 192 74 197 253 40 63 199 116 186 1 93 121
+         96 67 87 103 218 223 148 246 21 224 254 120 149 96 17 245 55 147 49 151 145)))))
 
 (defmethod asdf:input-files ((op generate-op) (system (eql (asdf:find-system :libcommonqt))))
   (list (make-pathname :name "commonqt" :type "pro" :defaults (first (asdf:output-files 'download-op system)))))
@@ -56,15 +57,15 @@
       (run-here "make -C ~s"
                 (uiop:native-namestring (uiop:pathname-directory-pathname makefile))))))
 
-(defmethod asdf:perform ((op install-op) (system (eql (asdf:find-system :libcommonqt))))
-  T)
-
 (defmethod asdf:output-files ((op generate-op) (system (eql (asdf:find-system :libcommonqt))))
   (values (list (shared-library-file :name "commonqt" :defaults (first (asdf:output-files 'download-op system))))
           T))
+
+(defmethod asdf:perform ((op install-op) (system (eql (asdf:find-system :libcommonqt))))
+  T)
 
 (defmethod asdf:output-files ((op install-op) (system (eql (asdf:find-system :libcommonqt))))
   (asdf:output-files 'generate-op system))
 
 (defmethod shared-library-files ((system (eql (asdf:find-system :libcommonqt))))
-  (mapcar #'uiop:resolve-symlinks (asdf:output-files 'generate-op system)))
+  (mapcar #'uiop:resolve-symlinks (asdf:output-files 'install-op system)))
