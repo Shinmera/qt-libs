@@ -48,6 +48,10 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
     #-quicklisp (asdf:load-system :qt)
     #+quicklisp (ql:quickload :qt))
 
+  ;; Remove SO computation
+  (defmethod asdf/plan:traverse-action (plan op (c (eql (asdf:find-component :qt "so"))) niip)
+    NIL)
+
   (defmethod asdf:perform :after ((op asdf:load-op) (c (eql (asdf:find-system :qt))))
     ;; Override standard load function and use ours instead.
     (setf (symbf :qt :load-libcommonqt)
