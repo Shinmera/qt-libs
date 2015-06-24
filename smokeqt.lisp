@@ -9,7 +9,7 @@
 (asdf:defsystem :smokeqt
   :class cmake-build-system
   :pversion "qt-libs1.1.0"
-  :depends-on (:qt-build-prerequisites
+  :depends-on (#-windows :qt-build-prerequisites
                :smokegen))
 
 (defmethod checksum ((system (eql (asdf:find-system :smokeqt))) &key type)

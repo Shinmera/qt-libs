@@ -9,7 +9,7 @@
 (asdf:defsystem :libcommonqt
   :class build-system
   :pversion "qt-libs1.1.0"
-  :depends-on (:qt-build-prerequisites
+  :depends-on (#-windows :qt-build-prerequisites
                :qt4
                :smokegen
                :smokeqt))
