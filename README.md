@@ -29,6 +29,10 @@ While qt-libs provides the foreign libraries for Smoke and CommonQt, you still n
   * Arch: `qt4` `base-devel`
   * Debian & Ubuntu: `libqt4-dev` `gcc` `g++` `cmake`
   * Fedora: `qt-devel` `gcc` `gcc-c++` `cmake`
+* If your implementation provides them, you may also use packages for the smokeqt libraries directly. Qt-libs *should* detect and use them instead of building from scratch.
+  * Arch: `AUR/kdebindings-smokeqt`
+  * Debian & Ubuntu: `libsmokeqt4-dev`
+  * Fedora: `smokeqt-devel`
 
 ### Mac OS X
 
