@@ -80,10 +80,33 @@
   (:windows "commonqt.dll")
   (t (:default "libcommonqt")))
 
+(defun setenv (envvar new-value)
+  #+sbcl (sb-posix:setenv envvar new-value 1)
+  #+ccl (ccl:setenv envvar new-value T)
+  #+ecl (ext:setenv envvar new-value)
+  #-(or sbcl ccl ecl) (warn "Don't know how to perform SETENV.~
+                           ~&Please set the environment variable ~s to ~s to ensure proper operation."
+                            envvar new-value))
+
+(defun get-path ()
+  (cl-ppcre:split #+windows ";" #-windows ":" (uiop:getenv "PATH")))
+
+(defun set-path (paths)
+  (setenv "PATH" (etypecase paths
+                   (string paths)
+                   (list (format NIL (load-time-value (format NIL "~~{~~a~~^~a~~}" #+windows ";" #-windows ":")) paths)))))
+
+(defun pushnew-path (path)
+  (let ((path (etypecase path
+                (pathname (uiop:native-namestring path))
+                (string path))))
+    (set-path (list* path (get-path)))))
+
 (defvar *libs-loaded* NIL)
 (defun load-libcommonqt (&key force)
   (when (or (not *libs-loaded*) force)
     (pushnew *standalone-libs-dir* cffi:*foreign-library-directories*)
+    (pushnew-path *standalone-libs-dir*)
     ;; See QT::LOAD-LIBCOMMONQT for an explanation of this.
     #+(and sbcl (not windows)) (sb-sys:enable-interrupt sb-unix:sigchld :default)
     ;; Do the loading.
