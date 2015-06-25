@@ -200,5 +200,6 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
     (T NIL)))
 
 
-(defun install-system (system &rest args &key (source-type :compiled))
+(defun install-system (system &rest args &key (source-type :compiled) &allow-other-keys)
+  (remf args :source-type)
   (apply #'asdf:operate (asdf:make-operation 'install-op :source-type source-type) system args))
