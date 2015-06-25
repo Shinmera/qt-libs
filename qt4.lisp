@@ -30,18 +30,21 @@
   (test-prerequisite "Qt4.8" "qmake-qt4" "qmake"))
 
 (defun qt4-on-path-p (path)
-  (loop for file in `(#+darwin ,(make-pathname :name "QtCore" :type NIL :defaults path)
-                      #+unix ,(make-pathname :name "libQtCore" :type "so" :defaults path)
-                      #+windows ,(make-pathname :name "QtCore4" :type "dll" :defaults path))
-        thereis (uiop:file-exists-p file)))
+  (loop for file in (list #+darwin (make-pathname :name "QtCore" :type NIL :defaults path)
+                          #+unix (make-pathname :name "libQtCore" :type "so" :defaults path)
+                          #+windows (make-pathname :name "QtCore4" :type "dll" :defaults path))
+        thereis (directory file)))
 
 (defmethod asdf:output-files ((op install-op) (system (eql (asdf:find-system :qt4))))
   (loop for dir in '(#+windows #p"C:/Qt/4.8.7/bin/"
                      #+linux #p"/usr/lib/"
                      #+linux #p"/usr/local/lib/"
+                     #+linux #.(uiop:wilden #p"/usr/lib/")
+                     #+linux #p"/usr/lib64/qt48/"
                      #+darwin #p"/opt/local/lib/"
                      #+darwin #p"/opt/local/Library/Frameworks/QtCore.framework/Versions/4/")
-        when (qt4-on-path-p dir)
-        return (values (list dir) T)
+        for found = (qt4-on-path-p dir)
+        when found
+        return (values found T)
         finally (return (append (call-next-method)
                                 (list (shared-library-file :name "qtcore" :defaults (relative-dir "install" "lib")))))))
