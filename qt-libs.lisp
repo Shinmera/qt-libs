@@ -48,17 +48,17 @@
 (defun ensure-standalone-libs (&key force (standalone-dir *standalone-libs-dir*))
   (let ((dirty force))
     (when (or force (not (uiop:file-exists-p (so-file "smokebase" standalone-dir))))
-      (qt-lib-generator:install-system :smokegen :source-type #+windows :precompiled #-windows :sources)
+      (qt-lib-generator:install-system :smokegen :source-type #+windows :compiled #-windows :sources)
       (copy-libs (qt-lib-generator:shared-library-files (asdf:find-system :smokegen)) standalone-dir
                  :test #-windows (lambda (file) (search "smokebase" (pathname-name file))) #+windows (constantly T))
       (setf dirty T))
     (when (or force (not (uiop:file-exists-p (so-file "smokeqtgui" standalone-dir))))
-      (qt-lib-generator:install-system :smokeqt :source-type #+windows :precompiled #-windows :sources)
+      (qt-lib-generator:install-system :smokeqt :source-type #+windows :compiled #-windows :sources)
       (copy-libs (qt-lib-generator:shared-library-files (asdf:find-system :smokeqt)) standalone-dir
                  :test #-windows (lambda (file) (search "smoke" (pathname-name file))) #+windows (constantly T))
       (setf dirty T))
     (when (or force (not (uiop:file-exists-p (so-file "commonqt" standalone-dir))))
-      (qt-lib-generator:install-system :libcommonqt :source-type #+windows :precompiled #-windows :sources)
+      (qt-lib-generator:install-system :libcommonqt :source-type #+windows :compiled #-windows :sources)
       (copy-libs (qt-lib-generator:shared-library-files (asdf:find-system :libcommonqt)) standalone-dir
                  :test #-windows (lambda (file) (search "commonqt" (pathname-name file))) #+windows (constantly T))
       (setf dirty T))
