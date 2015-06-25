@@ -29,6 +29,13 @@
 (defmethod asdf:perform ((op install-op) (c (eql (asdf:find-system :qt4))))
   (test-prerequisite "Qt4.8" "qmake-qt4" "qmake"))
 
-(defmethod asdf:output-files ((op install-op) (c (eql (asdf:find-system :qt4))))
-  (append (call-next-method)
-          (list (shared-library-file :name "qtcore" :defaults (relative-dir "install" "lib")))))
+(defun qt4-on-path-p (path)
+  (uiop:file-exists-p
+   (make-pathname :name "qmake" :defaults (relative-dir path "bin"))))
+
+(defmethod asdf:output-files ((op install-op) (system (eql (asdf:find-system :qt4))))
+  (loop for dir in '(#+windows #p"C:/Qt/4.8.7")
+        when (qt4-on-path-p dir)
+        return (values (list dir) T)
+        finally (return (append (call-next-method)
+                                (list (shared-library-file :name "qtcore" :defaults (relative-dir "install" "lib")))))))
