@@ -86,10 +86,11 @@
   #+ecl (ext:setenv envvar new-value)
   #-(or sbcl ccl ecl) (warn "Don't know how to perform SETENV.~
                            ~&Please set the environment variable ~s to ~s to ensure proper operation."
-                            envvar new-value))
+                            envvar new-value)
+  new-value)
 
 (defun get-path ()
-  (cl-ppcre:split #+windows ";" #-windows ":" (uiop:getenv "PATH")))
+  (cl-ppcre:split #+windows ";+" #-windows ":+" (uiop:getenv "PATH")))
 
 (defun set-path (paths)
   (setenv "PATH" (etypecase paths
@@ -99,8 +100,10 @@
 (defun pushnew-path (path)
   (let ((path (etypecase path
                 (pathname (uiop:native-namestring path))
-                (string path))))
-    (set-path (list* path (get-path)))))
+                (string path)))
+        (paths (get-path)))
+    (pushnew path paths :test #'string=)
+    (set-path paths)))
 
 (defvar *libs-loaded* NIL)
 (defun load-libcommonqt (&key force)
