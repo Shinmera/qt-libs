@@ -60,15 +60,24 @@
 
 (defun smokeqt-on-path-p (path)
   (uiop:file-exists-p
-   (shared-library-file :name "smokeqtcore" :defaults (relative-dir path "lib"))))
+   (shared-library-file :name "smokeqtcore" :defaults path)))
 
 (defmethod asdf:output-files ((op install-op) (system (eql (asdf:find-system :smokeqt))))
-  (loop for dir in '(#+:unix #p"/usr"
-                     #+:unix #p"/usr/local"
-                     #+(and x86-64 windows) #p"C:/Program Files/smokeqt/"
-                     #+(and x86 windows) #p"C:/Program Files (x86)/smokeqt/")
+  (loop for dir in '(#+unix #p"/usr/lib/"
+                     #+unix #p"/usr/local/lib/"
+                     #+(and x86-64 unix) #p"/usr/lib64/"
+                     #+(and x86-64 windows) #p"C:/Program Files/smokeqt/bin/"
+                     #+(and x86 windows) #p"C:/Program Files (x86)/smokeqt/bin/")
         when (smokeqt-on-path-p dir)
         return (values (list dir) T)
         finally (return (append (call-next-method)
                                 (list (shared-library-file :name "smokeqtcore" :defaults (relative-dir "install" "lib")))))))
 
+(defmethod shared-library-files ((system (eql (asdf:find-system :smokeqt))))
+  (make-shared-library-files
+   '("smokephonon" "smokeqimageblitz" "smokeqsci" "smokeqt3support"
+     "smokeqtcore" "smokeqtdbus" "smokeqtdeclarative" "smokeqtgui" "smokeqthelp"
+     "smokeqtmultimedia" "smokeqtnetwork" "smokeqtopengl" "smokeqtscript"
+     "smokeqtsql" "smokeqtsvg" "smokeqttest" "smokeqtuitools" "smokeqtwebkit"
+     "smokeqtxml" "smokeqtxmlpatterns")
+   (first (asdf:output-files 'install-op system))))

@@ -51,16 +51,15 @@
 (defun ensure-standalone-libs (&key force (standalone-dir *standalone-libs-dir*))
   (let ((dirty force)
         (source-type #-windows :sources #+windows :compiled))
-    (flet ((ensure-installed (so system &optional (test so))
+    (flet ((ensure-installed (so system)
              (when (or force (not (uiop:file-exists-p (so-file so standalone-dir))))
                (qt-lib-generator:install-system system :source-type source-type)
-               (copy-libs (qt-lib-generator:shared-library-files (asdf:find-system system)) standalone-dir
-                          :test #-windows (in-name-test test) #+windows (constantly T))
+               (copy-libs (qt-lib-generator:shared-library-files (asdf:find-system system)) standalone-dir)
                (setf dirty T))))
       (ensure-installed "smokebase" :smokegen)
-      (ensure-installed "smokeqtcore" :smokeqt "smoke")
+      (ensure-installed "smokeqtcore" :smokeqt)
       (ensure-installed "commonqt" :libcommonqt)
-      #+windows (ensure-installed "qtcore" :qt4 "qt"))
+      #+windows (ensure-installed "qtcore" :qt4))
     #+darwin
     (when dirty
       (dolist (file (uiop:directory-files standalone-dir))

@@ -70,7 +70,7 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
 
 (defmethod shared-library-files ((system build-system))
   (mapcar #'uiop:resolve-symlinks
-          (uiop:directory-files (relative-dir (first (asdf:output-files 'install-op system)) "lib")
+          (uiop:directory-files (first (asdf:output-files 'install-op system))
                                 (shared-library-file :defaults uiop:*wild-file*))))
 
 (defmethod asdf:component-pathname ((system build-system))

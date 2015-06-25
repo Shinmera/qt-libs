@@ -41,20 +41,24 @@
                -DCMAKE_INSTALL_PREFIX=~s"
           (uiop:native-namestring (first (asdf:output-files 'install-op system)))))
 
-(defun smokegen-on-path-p (path)
-  (uiop:file-exists-p
-   (make-pathname :name "smokegen" :defaults (relative-dir path "bin"))))
-
 (defmethod asdf:output-files ((op generate-op) (system (eql (asdf:find-system :smokegen))))
   (list* (make-pathname :name "smokegen" :type NIL :defaults (relative-dir "generate" "bin"))
          (call-next-method)))
 
+(defun smokegen-on-path-p (path)
+  (uiop:file-exists-p
+   (shared-library-file :name "smokebase" :defaults path)))
+
 (defmethod asdf:output-files ((op install-op) (system (eql (asdf:find-system :smokegen))))
-  (loop for dir in '(#+unix #p"/usr"
-                     #+unix #p"/usr/local"
-                     #+(and x86-64 windows) #p"C:/Program Files/smokegenerator/"
-                     #+(and x86 windows) #p"C:/Program Files (x86)/smokegenerator/")
+  (loop for dir in '(#+unix #p"/usr/lib/"
+                     #+unix #p"/usr/local/lib/"
+                     #+(and x86-64 unix) #p"/usr/lib64/"
+                     #+(and x86-64 windows) #p"C:/Program Files/smokegenerator/bin/"
+                     #+(and x86 windows) #p"C:/Program Files (x86)/smokegenerator/bin/")
         when (smokegen-on-path-p dir)
         return (values (list dir) T)
         finally (return (append (call-next-method)
                                 (list (make-pathname :name "smokegen" :type NIL :defaults (relative-dir "install" "bin")))))))
+
+(defmethod shared-library-files ((system (eql (asdf:find-system :smokegen))))
+  (make-shared-library-files '("smokebase") (first (asdf:output-files 'install-op system))))

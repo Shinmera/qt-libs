@@ -161,7 +161,14 @@
   (apply #'make-pathname :type #+windows "dll" #+darwin "dylib" #-(or windows darwin) "so"
                          :name (or (and name #-windows (concatenate 'string "lib" name))
                                    (pathname-name defaults))
-                               args))
+                         args))
+
+(defun make-shared-library-files (names defaults)
+  (remove-if-not #'uiop:file-exists-p
+                 (mapcar (lambda (name)
+                           (uiop:resolve-symlinks
+                            (shared-library-file :name name :defaults defaults)))
+                         names)))
 
 (defun filetype (pathname)
   (let* ((type (pathname-type pathname))
