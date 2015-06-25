@@ -45,23 +45,22 @@
 (defun so-file (name defaults)
   (qt-lib-generator:shared-library-file :name name :defaults defaults))
 
+(defun in-name-test (find)
+  (lambda (file) (search find (pathname-name file) :test #'char-equal)))
+
 (defun ensure-standalone-libs (&key force (standalone-dir *standalone-libs-dir*))
-  (let ((dirty force))
-    (when (or force (not (uiop:file-exists-p (so-file "smokebase" standalone-dir))))
-      (qt-lib-generator:install-system :smokegen :source-type #+windows :compiled #-windows :sources)
-      (copy-libs (qt-lib-generator:shared-library-files (asdf:find-system :smokegen)) standalone-dir
-                 :test #-windows (lambda (file) (search "smokebase" (pathname-name file))) #+windows (constantly T))
-      (setf dirty T))
-    (when (or force (not (uiop:file-exists-p (so-file "smokeqtgui" standalone-dir))))
-      (qt-lib-generator:install-system :smokeqt :source-type #+windows :compiled #-windows :sources)
-      (copy-libs (qt-lib-generator:shared-library-files (asdf:find-system :smokeqt)) standalone-dir
-                 :test #-windows (lambda (file) (search "smoke" (pathname-name file))) #+windows (constantly T))
-      (setf dirty T))
-    (when (or force (not (uiop:file-exists-p (so-file "commonqt" standalone-dir))))
-      (qt-lib-generator:install-system :libcommonqt :source-type #+windows :compiled #-windows :sources)
-      (copy-libs (qt-lib-generator:shared-library-files (asdf:find-system :libcommonqt)) standalone-dir
-                 :test #-windows (lambda (file) (search "commonqt" (pathname-name file))) #+windows (constantly T))
-      (setf dirty T))
+  (let ((dirty force)
+        (source-type #-windows :sources #+windows :compiled))
+    (flet ((ensure-installed (so system &optional (test so))
+             (when (or force (not (uiop:file-exists-p (so-file so standalone-dir))))
+               (qt-lib-generator:install-system system :source-type source-type)
+               (copy-libs (qt-lib-generator:shared-library-files (asdf:find-system system)) standalone-dir
+                          :test #-windows (in-name-test test) #+windows (constantly T))
+               (setf dirty T))))
+      (ensure-installed "smokebase" :smokegen)
+      (ensure-installed "smokeqtcore" :smokeqt "smoke")
+      (ensure-installed "commonqt" :libcommonqt)
+      #+windows (ensure-installed "qtcore" :qt4 "qt"))
     #+darwin
     (when dirty
       (dolist (file (uiop:directory-files standalone-dir))
