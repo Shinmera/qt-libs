@@ -70,8 +70,8 @@
                      #+(and x86 windows) #p"C:/Program Files (x86)/smokeqt/bin/")
         when (smokeqt-on-path-p dir)
         return (values (list dir) T)
-        finally (return (append (call-next-method)
-                                (list (shared-library-file :name "smokeqtcore" :defaults (relative-dir "install" "lib")))))))
+        finally (return (list (relative-dir "install" "lib")
+                              (shared-library-file :name "smokeqtcore" :defaults (relative-dir "install" "lib"))))))
 
 (defmethod shared-library-files ((system (eql (asdf:find-system :smokeqt))))
   (make-shared-library-files

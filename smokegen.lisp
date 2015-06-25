@@ -57,8 +57,8 @@
                      #+(and x86 windows) #p"C:/Program Files (x86)/smokegenerator/bin/")
         when (smokegen-on-path-p dir)
         return (values (list dir) T)
-        finally (return (append (call-next-method)
-                                (list (make-pathname :name "smokegen" :type NIL :defaults (relative-dir "install" "bin")))))))
+        finally (return (list (relative-dir "install" "lib")
+                              (shared-library-file :name "smokebase" :defaults (relative-dir "install" "lib"))))))
 
 (defmethod shared-library-files ((system (eql (asdf:find-system :smokegen))))
   (make-shared-library-files '("smokebase") (first (asdf:output-files 'install-op system))))
