@@ -30,11 +30,17 @@
   (test-prerequisite "Qt4.8" "qmake-qt4" "qmake"))
 
 (defun qt4-on-path-p (path)
-  (uiop:file-exists-p
-   (make-pathname :name "qmake" :defaults (relative-dir path "bin"))))
+  (loop for file in '(#+darwin (make-pathname :name "QtCore" :type NIL :defaults path)
+                      #+unix (make-pathname :name "libQtCore" :type "so" :defaults path)
+                      #+windows (make-pathname :name "QtCore4" :type "dll" :defaults path))
+        thereis (uiop:file-exists-p file)))
 
 (defmethod asdf:output-files ((op install-op) (system (eql (asdf:find-system :qt4))))
-  (loop for dir in '(#+windows #p"C:/Qt/4.8.7")
+  (loop for dir in '(#+windows #p"C:/Qt/4.8.7/bin/"
+                     #+linux #p"/usr/lib/"
+                     #+linux #p"/usr/local/lib/"
+                     #+darwin #p"/opt/local/lib/"
+                     #+darwin #p"/opt/local/Library/Frameworks/QtCore.framework/Versions/4/")
         when (qt4-on-path-p dir)
         return (values (list dir) T)
         finally (return (append (call-next-method)
