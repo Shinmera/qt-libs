@@ -27,7 +27,8 @@
    #:cmake-build-system
    #:origin
    #:shared-library-files
-   #:install-system)
+   #:install-system
+   #:clean-system)
   ;; toolkit.lisp
   (:export
    #:*max-cpus*

@@ -164,9 +164,9 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
   ((cmake-flags :initarg :cmake-flags :initform NIL :accessor cmake-flags)))
 
 (defmethod asdf:output-files ((op download-op) (system cmake-build-system))
-  (if (eql (source-type op) :compiled)
-      (call-next-method)
-      (list (make-pathname :name "CMakeLists" :type "txt" :defaults (uiop:ensure-directory-pathname "source")))))
+  (append (call-next-method)
+          (unless (eql (source-type op) :compiled)
+            (list (make-pathname :name "CMakeLists" :type "txt" :defaults (uiop:ensure-directory-pathname "source"))))))
 
 (defmethod asdf:input-files ((op generate-op) (system cmake-build-system))
   (list (make-pathname :name "Makefile" :type NIL :defaults (car (last (asdf:output-files op system))))
@@ -200,6 +200,16 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
     (T NIL)))
 
 
-(defun install-system (system &rest args &key (source-type :compiled) &allow-other-keys)
+(defun install-system (system &rest args &key (source-type :compiled) force &allow-other-keys)
   (remf args :source-type)
+  (when force (clean-system system))
   (apply #'asdf:operate (asdf:make-operation 'install-op :source-type source-type) system args))
+
+(defun clean-system (system)
+  (flet ((deldir (dir)
+           (when (uiop:directory-exists-p dir)
+             (uiop:delete-directory-tree dir :validate (constantly T)))))
+    (deldir (first (asdf:output-files 'install-op system)))
+    (deldir (first (asdf:output-files 'generate-op system)))
+    (deldir (first (asdf:output-files 'download-op system))))
+  system)

@@ -42,8 +42,8 @@
           (uiop:native-namestring (first (asdf:output-files 'install-op system)))))
 
 (defmethod asdf:output-files ((op generate-op) (system (eql (asdf:find-system :smokegen))))
-  (list* (make-pathname :name "smokegen" :type NIL :defaults (relative-dir "generate" "bin"))
-         (call-next-method)))
+  (append (call-next-method)
+          (list (make-pathname :name "smokegen" :type NIL :defaults (relative-dir "generate" "bin")))))
 
 (defun smokegen-on-path-p (path)
   (uiop:file-exists-p
@@ -57,8 +57,8 @@
                      #+(and x86 windows) #p"C:/Program Files (x86)/smokegenerator/bin/")
         when (smokegen-on-path-p dir)
         return (values (list dir) T)
-        finally (return (list (relative-dir "install" "lib")
-                              (shared-library-file :name "smokebase" :defaults (relative-dir "install" "lib"))))))
+        finally (return (append (call-next-method)
+                                (list (shared-library-file :name "smokebase" :defaults (relative-dir "install" "lib")))))))
 
 (defmethod shared-library-files ((system (eql (asdf:find-system :smokegen))))
-  (make-shared-library-files '("smokebase") (first (asdf:output-files 'install-op system))))
+  (make-shared-library-files '("smokebase") (second (asdf:output-files 'install-op system))))
