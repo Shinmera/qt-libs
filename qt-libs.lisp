@@ -14,8 +14,7 @@
    #:load-libcommonqt))
 (in-package #:org.shirakumo.qtools.libs)
 
-(defvar *standalone-libs-dir* (ensure-directories-exist
-                               (asdf:system-relative-pathname :qt-libs "standalone" :type :directory)))
+(defvar *standalone-libs-dir* (asdf:system-relative-pathname :qt-libs "standalone" :type :directory))
 
 (defun determine-so-type (pathname)
   (cond ((search ".so." (pathname-name pathname))
@@ -40,6 +39,8 @@
                                    :type (determine-so-type input)
                                    :name (determine-so-name input))))
         (unless (uiop:file-exists-p output)
+          (ensure-directories-exist output)
+          (qt-lib-generator::status 1 "Copying ~s to ~s" (uiop:native-namestring input) (uiop:native-namestring output))
           (uiop:copy-file input output))))))
 
 (defun so-file (name defaults)
