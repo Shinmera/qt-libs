@@ -4,7 +4,6 @@ env:
   matrix:
     - LISP=sbcl
     - LISP=ccl
-    - LISP=ecl
 
 install:
   # Qt
