@@ -64,6 +64,7 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
 (defgeneric checksum (system &key type))
 
 (defmethod checksum ((system build-system) &key type)
+  (declare (ignore system type))
   NIL)
 
 (defgeneric shared-library-files (system))

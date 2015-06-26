@@ -15,6 +15,10 @@
   :serial T
   :components ((:file "package")
                (:file "toolkit")
+               (:file "pathnames")
+               (:file "setenv")
+               (:file "dylib")
+               (:file "archives")
                (:file "system")
                (:file "qt4")
                (:file "smokegen")

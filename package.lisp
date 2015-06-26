@@ -8,10 +8,45 @@
 (defpackage #:qt-lib-generator
   (:use #:cl)
   (:nicknames #:org.shirakumo.qtools.libs.generator)
+  ;; archives.lisp
+  (:export
+   #:clone
+   #:checksum-string
+   #:checksum-file
+   #:download-file
+   #:safely-download-file
+   #:extract-zip-archive
+   #:extract-tar-archive
+   #:extract-archive)
   ;; commonqt.lisp
-  (:export)
+  (:export
+   #:fix-commonqt-pro-file)
+  ;; dylib.lisp
+  (:export
+   #:dylib-dependencies
+   #:dylib-set-install-name
+   #:dylib-set-dependency-name
+   #:fix-dylib-paths)
+  ;; pathnames.lisp
+  (:export
+   #:filetype
+   #:filename
+   #:relative-dir
+   #:upqards-file
+   #:with-chdir
+   #:with-temp-file
+   #:shared-library-file
+   #:make-shared-lirbary-files
+   #:determine-shared-library-type
+   #:determine-shared-library-name)
   ;; qt4.lisp
   (:export)
+  ;; setenv.lisp
+  (:export
+   #:setenv
+   #:get-path
+   #:set-path
+   #:pushnew-path)
   ;; smokegen.lisp
   (:export)
   ;; smokeqt.lisp
@@ -32,28 +67,16 @@
   ;; toolkit.lisp
   (:export
    #:*max-cpus*
-   #:status
    #:externalize
+   #:status
+   #:run
    #:run-here
-   #:checksum-string
-   #:checksum-file
-   #:download-file
-   #:safely-download-file
-   #:extract-tar-archive
-   #:relative-dir
-   #:with-chdir
-   #:with-temp-file
+   #:ensure-system
    #:application-available-p
    #:test-prerequisite
-   #:shared-library-file
-   #:determine-shared-library-name
-   #:determine-shared-library-type
-   #:filename
-   #:dylib-dependencies
-   #:dylib-set-install-name
-   #:dylib-set-dependency-name
-   #:fix-dylib-paths
-   #:setenv
-   #:get-path
-   #:set-path
-   #:pushnew-path))
+   #:cpu-count
+   #:url-filetype
+   #:project-url
+   #:project-git-url
+   #:project-sources-url
+   #:project-release-url))
