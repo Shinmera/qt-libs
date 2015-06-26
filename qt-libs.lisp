@@ -7,7 +7,7 @@
 (in-package #:cl-user)
 (defpackage #:qt-libs
   (:nicknames #:org.shirakumo.qtools.libs)
-  (:use #:cl)
+  (:use #:cl #:qt-lib-generator)
   (:export
    #:*standalone-libs-dir*
    #:ensure-standalone-libs
@@ -15,18 +15,6 @@
 (in-package #:org.shirakumo.qtools.libs)
 
 (defvar *standalone-libs-dir* (asdf:system-relative-pathname :qt-libs "standalone" :type :directory))
-
-(defun determine-so-type (pathname)
-  (cond ((search ".so." (pathname-name pathname))
-         "so")
-        (T (pathname-type pathname))))
-
-(defun determine-so-name (pathname)
-  (cond ((search ".so." (pathname-name pathname))
-         (subseq (pathname-name pathname) 0 (search ".so." (pathname-name pathname))))
-        (T
-         (or (cl-ppcre:register-groups-bind (name) ("^(.+)\\.\\d\\.\\d\\.\\d$" (pathname-name pathname)) name)
-             (pathname-name pathname)))))
 
 (defun copy-libs (from to &key (test (constantly T)))
   (dolist (input (etypecase from
@@ -36,26 +24,20 @@
                    (search ".so." (pathname-name input)))
                (funcall test input))
       (let ((output (make-pathname :defaults to
-                                   :type (determine-so-type input)
-                                   :name (determine-so-name input))))
+                                   :type (determine-shared-library-type input)
+                                   :name (determine-shared-library-name input))))
         (unless (uiop:file-exists-p output)
           (ensure-directories-exist output)
-          (qt-lib-generator::status 1 "Copying ~s to ~s" (uiop:native-namestring input) (uiop:native-namestring output))
+          (status 1 "Copying ~s to ~s" (uiop:native-namestring input) (uiop:native-namestring output))
           (uiop:copy-file input output))))))
-
-(defun so-file (name defaults)
-  (qt-lib-generator:shared-library-file :name name :defaults defaults))
-
-(defun in-name-test (find)
-  (lambda (file) (search find (pathname-name file) :test #'char-equal)))
 
 (defun ensure-standalone-libs (&key force (standalone-dir *standalone-libs-dir*))
   (let ((dirty force)
         (source-type #-windows :sources #+windows :compiled))
     (flet ((ensure-installed (so system)
-             (when (or force (not (uiop:file-exists-p (so-file so standalone-dir))))
-               (qt-lib-generator:install-system system :source-type source-type)
-               (copy-libs (qt-lib-generator:shared-library-files (asdf:find-system system)) standalone-dir)
+             (when (or force (not (uiop:file-exists-p (shared-library-file :name so :defaults standalone-dir))))
+               (install-system system :source-type source-type)
+               (copy-libs (shared-library-files (asdf:find-system system)) standalone-dir)
                (setf dirty T))))
       (ensure-installed "smokebase" :smokegen)
       (ensure-installed "smokeqtcore" :smokeqt)
@@ -64,7 +46,7 @@
     #+darwin
     (when dirty
       (dolist (file (uiop:directory-files standalone-dir))
-        (qt-lib-generator:fix-dylib-paths file))))
+        (fix-dylib-paths file))))
   standalone-dir)
 
 (cffi:define-foreign-library libsmokebase
@@ -76,34 +58,8 @@
   (t (:default "libsmokeqtcore")))
 
 (cffi:define-foreign-library libcommonqt
-  (:linux (:or "libcommonqt.so.1.0.0" "libcommonqt.so.1" "libcommonqt.so"))
   (:windows "commonqt.dll")
   (t (:default "libcommonqt")))
-
-(defun setenv (envvar new-value)
-  #+sbcl (sb-posix:setenv envvar new-value 1)
-  #+ccl (ccl:setenv envvar new-value T)
-  #+ecl (ext:setenv envvar new-value)
-  #-(or sbcl ccl ecl) (warn "Don't know how to perform SETENV.~
-                           ~&Please set the environment variable ~s to ~s to ensure proper operation."
-                            envvar new-value)
-  new-value)
-
-(defun get-path ()
-  (cl-ppcre:split #+windows ";+" #-windows ":+" (uiop:getenv "PATH")))
-
-(defun set-path (paths)
-  (setenv "PATH" (etypecase paths
-                   (string paths)
-                   (list (format NIL (load-time-value (format NIL "~~{~~a~~^~a~~}" #+windows ";" #-windows ":")) paths)))))
-
-(defun pushnew-path (path)
-  (let ((path (etypecase path
-                (pathname (uiop:native-namestring path))
-                (string path)))
-        (paths (get-path)))
-    (pushnew path paths :test #'string=)
-    (set-path paths)))
 
 (defvar *libs-loaded* NIL)
 (defun load-libcommonqt (&key force)

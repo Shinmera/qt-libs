@@ -32,6 +32,7 @@
   ;; toolkit.lisp
   (:export
    #:*max-cpus*
+   #:status
    #:externalize
    #:run-here
    #:checksum-string
@@ -45,8 +46,14 @@
    #:application-available-p
    #:test-prerequisite
    #:shared-library-file
+   #:determine-shared-library-name
+   #:determine-shared-library-type
    #:filename
    #:dylib-dependencies
    #:dylib-set-install-name
    #:dylib-set-dependency-name
-   #:fix-dylib-paths))
+   #:fix-dylib-paths
+   #:setenv
+   #:get-path
+   #:set-path
+   #:pushnew-path))
