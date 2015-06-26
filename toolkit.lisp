@@ -170,6 +170,18 @@
                             (shared-library-file :name name :defaults defaults)))
                          names)))
 
+(defun determine-shared-library-type (pathname)
+  (cond ((search ".so." (pathname-name pathname))
+         "so")
+        (T (pathname-type pathname))))
+
+(defun determine-shared-library-name (pathname)
+  (cond ((search ".so." (pathname-name pathname))
+         (subseq (pathname-name pathname) 0 (search ".so." (pathname-name pathname))))
+        (T
+         (or (cl-ppcre:register-groups-bind (name) ("^(.+)\\.\\d\\.\\d\\.\\d$" (pathname-name pathname)) name)
+             (pathname-name pathname)))))
+
 (defun filetype (pathname)
   (let* ((type (pathname-type pathname))
          (pos (position #\. type :from-end T)))
@@ -239,3 +251,28 @@
           #+linux "lin" #+darwin "mac" #+windows "win" #-(or linux darwin windows) (error "Platform not supported.")
           #+x86-64 "64" #+x86 "32" #-(or x86-64 x86) (error "Platform not supported.")
           project))
+
+(defun setenv (envvar new-value)
+  #+sbcl (sb-posix:setenv envvar new-value 1)
+  #+ccl (ccl:setenv envvar new-value T)
+  #+ecl (ext:setenv envvar new-value)
+  #-(or sbcl ccl ecl) (warn "Don't know how to perform SETENV.~
+                           ~&Please set the environment variable ~s to ~s to ensure proper operation."
+                            envvar new-value)
+  new-value)
+
+(defun get-path ()
+  (cl-ppcre:split #+windows ";+" #-windows ":+" (uiop:getenv "PATH")))
+
+(defun set-path (paths)
+  (setenv "PATH" (etypecase paths
+                   (string paths)
+                   (list (format NIL (load-time-value (format NIL "~~{~~a~~^~a~~}" #+windows ";" #-windows ":")) paths)))))
+
+(defun pushnew-path (path)
+  (let ((path (etypecase path
+                (pathname (uiop:native-namestring path))
+                (string path)))
+        (paths (get-path)))
+    (pushnew path paths :test #'string=)
+    (set-path paths)))

@@ -184,6 +184,7 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
 (asdf:defsystem :qt-build-prerequisites)
 
 (defmethod asdf:perform ((op install-op) (c (eql (asdf:find-system :qt-build-prerequisites))))
+  #+darwin (pushnew-path "/opt/local/bin")
   (test-prerequisite "CMake" "cmake")
   (test-prerequisite "Make" "make")
   (test-prerequisite "C Compiler" "cc" "gcc")
