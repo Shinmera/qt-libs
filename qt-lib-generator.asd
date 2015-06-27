@@ -25,4 +25,5 @@
                (:file "smokeqt")
                (:file "commonqt"))
   :depends-on (:trivial-features
-               :cl-ppcre))
+               :cl-ppcre
+               #+sbcl :sb-posix))
