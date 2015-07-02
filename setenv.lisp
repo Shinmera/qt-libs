@@ -15,18 +15,18 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
                             envvar new-value)
   new-value)
 
-(defun get-path ()
-  (cl-ppcre:split #+windows ";+" #-windows ":+" (uiop:getenv "PATH")))
+(defun get-path (&optional (envvar "PATH"))
+  (cl-ppcre:split #+windows ";+" #-windows ":+" (uiop:getenv envvar)))
 
-(defun set-path (paths)
-  (setenv "PATH" (etypecase paths
+(defun set-path (paths &optional (envvar "PATH"))
+  (setenv envvar (etypecase paths
                    (string paths)
                    (list (format NIL (load-time-value (format NIL "~~{~~a~~^~a~~}" #+windows ";" #-windows ":")) paths)))))
 
-(defun pushnew-path (path)
+(defun pushnew-path (path &optional (envvar "PATH"))
   (let ((path (etypecase path
                 (pathname (uiop:native-namestring path))
                 (string path)))
-        (paths (get-path)))
+        (paths (get-path envvar)))
     (pushnew path paths :test #'string=)
-    (set-path paths)))
+    (set-path paths envvar)))
