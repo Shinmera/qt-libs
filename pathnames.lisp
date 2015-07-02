@@ -65,7 +65,10 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
 (defun determine-shared-library-type (pathname)
   (cond ((search ".so." (pathname-name pathname))
          "so")
-        (T (pathname-type pathname))))
+        (T (or (pathname-type pathname)
+               #+darwin "dylib"
+               #+unix "so"
+               #+windows "dll"))))
 
 (defun determine-shared-library-name (pathname)
   (cond ((search ".so." (pathname-name pathname))
