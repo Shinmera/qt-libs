@@ -20,9 +20,7 @@
   (dolist (input (etypecase from
                    (list from)
                    (pathname (uiop:directory-files from))))
-    (when (and (or (find (pathname-type input) '("dylib" "dll" "so") :test #'string=)
-                   (search ".so." (pathname-name input)))
-               (funcall test input))
+    (when (funcall test input)
       (let ((output (make-pathname :defaults to
                                    :type (determine-shared-library-type input)
                                    :name (determine-shared-library-name input))))
@@ -39,13 +37,14 @@
                (install-system system :source-type source-type)
                (copy-libs (shared-library-files (asdf:find-system system)) standalone-dir)
                (setf dirty T))))
+      (ensure-installed "QtCore" :qt4)
       (ensure-installed "smokebase" :smokegen)
       (ensure-installed "smokeqtcore" :smokeqt)
       (ensure-installed "commonqt" :libcommonqt)
       #+windows (ensure-installed "qtcore" :qt4))
     #+darwin
     (when dirty
-      (dolist (file (uiop:directory-files standalone-dir))
+      (dolist (file (uiop:directory-files standalone-dir (make-pathname :type "dylib" :defaults uiop:*wild-file*)))
         (fix-dylib-paths file))))
   standalone-dir)
 
