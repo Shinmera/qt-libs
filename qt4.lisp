@@ -47,7 +47,9 @@
                      #+darwin #p"/opt/local/lib/")
         for found = (qt4-on-path-p dir)
         when found
-        return (values (list dir) T)
+        return (values (if (wild-pathname-p dir)
+                           found
+                           (list dir)) T)
         finally (return (append (call-next-method)
                                 (list (shared-library-file :name #+unix "QtCore" #+windows "QtCore4"
                                                            :defaults (relative-dir "install" "lib")))))))
