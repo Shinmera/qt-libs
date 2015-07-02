@@ -35,12 +35,19 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
   ;; Primitively change relative paths to use @loader-path and matching name in dir.
   (let ((files (remove "dylib" (uiop:directory-files pathname) :key #'pathname-type :test-not #'string=)))
     (dolist (dep (dylib-dependencies pathname))
-      (let ((dep (pathname dep)))
-        (when (uiop:relative-pathname-p dep)
-          (dylib-set-dependency-name
-           pathname dep
-           (let ((corresponding (find-similar dep files)))
-             (if corresponding
-                 (format NIL "@loader_path/~a" (filename corresponding))
-                 (filename dep))))))))
+      (let ((path (pathname dep)))
+        (cond ((uiop:relative-pathname-p path)
+               (dylib-set-dependency-name
+                pathname dep
+                (let ((corresponding (find-similar path files)))
+                  (if corresponding
+                      (format NIL "@loader_path/~a" (filename corresponding))
+                      dep))))
+              ((search "/opt/local/" dep)
+               (dylib-set-dependency-name
+                pathname dep
+                (let ((corresponding (find-similar path files)))
+                  (if corresponding
+                      (format NIL "@loader_path/~a" (filename corresponding))
+                      dep))))))))
   pathname)
