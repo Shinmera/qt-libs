@@ -60,4 +60,9 @@
      "QtDesignerComponents" "QtGui" "QtHelp" "QtMultimedia" "QtNetwork"
      "QtOpenGL" "QtScript" "QtScriptTools" "QtSql" "QtSvg" "QtTest" "QtUiTools"
      "QtXml" "QtXmlPatterns" "phonon")
-   (first (asdf:output-files 'install-op system))))
+   (let ((dirs (asdf:output-files 'install-op system)))
+     (or (second dirs) (first dirs)))
+   :key #+windows (lambda (path)
+                    (make-pathname :name (format NIL "~a4" (pathname-name path))
+                                   :defaults path))
+        #-windows #'identity))

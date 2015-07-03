@@ -55,11 +55,13 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
                                    (pathname-name defaults))
                          args))
 
-(defun make-shared-library-files (names defaults)
+(defun make-shared-library-files (names defaults &key (key #'identity))
   (remove-if-not #'uiop:file-exists-p
                  (mapcar (lambda (name)
-                           (uiop:resolve-symlinks
-                            (shared-library-file :name name :defaults defaults)))
+                           (funcall
+                            key
+                            (uiop:resolve-symlinks
+                             (shared-library-file :name name :defaults defaults))))
                          names)))
 
 (defun determine-shared-library-type (pathname)
