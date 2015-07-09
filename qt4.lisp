@@ -59,7 +59,7 @@
    '("Qt3Support" "QtCLucene" "QtCore" "QtDBus" "QtDeclarative" "QtDesigner"
      "QtDesignerComponents" "QtGui" "QtHelp" "QtMultimedia" "QtNetwork"
      "QtOpenGL" "QtScript" "QtScriptTools" "QtSql" "QtSvg" "QtTest" "QtUiTools"
-     "QtXml" "QtXmlPatterns" "phonon")
+     "QtXml" "QtXmlPatterns" "QtWebKit" "phonon")
    (let ((dirs (asdf:output-files 'install-op system)))
      (or (second dirs) (first dirs)))
    :key #+windows (lambda (path)
