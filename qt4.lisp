@@ -56,10 +56,15 @@
 
 (defmethod shared-library-files ((system (eql (asdf:find-system :qt4))))
   (make-shared-library-files
-   '("Qt3Support" "QtCLucene" "QtCore" "QtDBus" "QtDeclarative" "QtDesigner"
-     "QtDesignerComponents" "QtGui" "QtHelp" "QtMultimedia" "QtNetwork"
-     "QtOpenGL" "QtScript" "QtScriptTools" "QtSql" "QtSvg" "QtTest" "QtUiTools"
-     "QtXml" "QtXmlPatterns" "QtWebKit" "phonon")
+   (append
+    '("Qt3Support" "QtCLucene" "QtCore" "QtDBus" "QtDeclarative" "QtDesigner"
+      "QtDesignerComponents" "QtGui" "QtHelp" "QtMultimedia" "QtNetwork"
+      "QtOpenGL" "QtScript" "QtScriptTools" "QtSql" "QtSvg" "QtTest" "QtUiTools"
+      "QtXml" "QtXmlPatterns" "QtWebKit" "phonon")
+    ;; These are additional libraries that are apparently not provided by OS X
+    ;; and are instead also linked to /opt/local/lib/, which will not be available
+    ;; on a potential target system. Therefore, we need to include them.
+    #+darwin '("z" "png" "ssl" "crypto" "dbus-1.3"))
    (let ((dirs (asdf:output-files 'install-op system)))
      (or (second dirs) (first dirs)))
    :key #+windows (lambda (path)
