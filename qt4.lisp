@@ -38,36 +38,68 @@
                           (make-pathname :name "QtCore" :defaults path))
         thereis (directory file)))
 
+(defun find-qt-lib-directory ()
+  (restart-case
+      (or
+       (loop for dir in '(#+windows #p"C:/Qt/4.8.7/bin/"
+                          #+linux #p"/usr/lib/"
+                          #+linux #p"/usr/local/lib/"
+                          #+linux #p"/usr/lib64/qt48/"
+                          #+linux #.(uiop:wilden #p"/usr/lib/")
+                          #+osx-ports #p"/opt/local/lib/"
+                          #+osx-brew #p"/usr/local/Cellar/qt/4.8.7/lib/*.framework/"
+                          #+osx-fink #p"/sw/lib/qt4-mac/lib/*.framework/")
+             when (qt4-on-path-p dir)
+             return dir)
+       (error "Could not find Qt library directory!"))
+    (specify-path (path)
+      :report "Manually specify a path to use. If necessary, make the path wild to point to all possible library binaries."
+      :interactive read-path
+      path)))
+
+(defun find-qt-plugins-directory ()
+  (restart-case
+      (or
+       (loop for dir in '(#+windows #p"C:/Qt/4.8.7/plugins/*/"
+                          #+linux #p"/usr/lib/qt4/plugins/*/"
+                          #+linux #p"/usr/local/lib/qt4/plugins/*/"
+                          #+linux #p"/usr/lib/**/plugins/*/"
+                          #+osx-ports #p"/opt/local/share/qt4/plugins/*/"
+                          #+osx-brew #p"/usr/local/Cellar/qt/4.8.7/plugins/*/"
+                          #+osx-fink #p"/sw/lib/qt4-mac/plugins/*/")
+             when (directory dir)
+             return dir)
+       (error "Could not find Qt plugins directory!"))
+    (specify-path (path)
+      :report "Manually specify a path to use. Make sure to make the path wild so that it points to all plugins subdirectories."
+      :interactive read-path
+      path)))
+
 (defmethod asdf:output-files ((op install-op) (system (eql (asdf:find-system :qt4))))
-  (loop for dir in '(#+windows #p"C:/Qt/4.8.7/bin/"
-                     #+linux #p"/usr/lib/"
-                     #+linux #p"/usr/local/lib/"
-                     #+linux #.(uiop:wilden #p"/usr/lib/")
-                     #+linux #p"/usr/lib64/qt48/"
-                     #+darwin #p"/opt/local/lib/")
-        for found = (qt4-on-path-p dir)
-        when found
-        return (values (if (wild-pathname-p dir)
-                           found
-                           (list dir)) T)
-        finally (return (append (call-next-method)
-                                (list (shared-library-file :name #+unix "QtCore" #+windows "QtCore4"
-                                                           :defaults (relative-dir "install" "lib")))))))
+  (values (directory (find-qt-lib-directory)) T))
 
 (defmethod shared-library-files ((system (eql (asdf:find-system :qt4))))
-  (make-shared-library-files
-   (append
-    '("Qt3Support" "QtCLucene" "QtCore" "QtDBus" "QtDeclarative" "QtDesigner"
-      "QtDesignerComponents" "QtGui" "QtHelp" "QtMultimedia" "QtNetwork"
-      "QtOpenGL" "QtScript" "QtScriptTools" "QtSql" "QtSvg" "QtTest" "QtUiTools"
-      "QtXml" "QtXmlPatterns" "QtWebKit" "phonon")
-    ;; These are additional libraries that are apparently not provided by OS X
-    ;; and are instead also linked to /opt/local/lib/, which will not be available
-    ;; on a potential target system. Therefore, we need to include them.
-    #+darwin '("z" "png" "ssl" "crypto" "dbus-1.3"))
-   (let ((dirs (asdf:output-files 'install-op system)))
-     (or (second dirs) (first dirs)))
-   :key #+windows (lambda (path)
-                    (make-pathname :name (format NIL "~a4" (pathname-name path))
-                                   :defaults path))
-        #-windows #'identity))
+  (append
+   (make-shared-library-files
+    (append
+     '("Qt3Support" "QtCLucene" "QtCore" "QtDBus" "QtDeclarative" "QtDesigner"
+       "QtDesignerComponents" "QtGui" "QtHelp" "QtMultimedia" "QtNetwork"
+       "QtOpenGL" "QtScript" "QtScriptTools" "QtSql" "QtSvg" "QtTest" "QtUiTools"
+       "QtXml" "QtXmlPatterns" "QtWebKit" "phonon")
+     ;; These are additional libraries that are apparently provided by ports.
+     #+osx-ports '("z" "png" "ssl" "crypto" "dbus-1.3"))
+    (find-qt-lib-directory)
+    :key #+windows (lambda (path) (make-pathname :name (format NIL "~a4" (pathname-name path)) :defaults path))
+         #-windows #'identity)
+   ;; Additional libraries that are stored in the Qt plugins folder.
+   ;; The fun never ends. OH DEAR.
+   (make-shared-library-files
+    '("qtaccessiblecompatwidgets" "qtaccessiblewidgets" "qcorewlanbearer"
+      "qgenericbearer" "qcncodecs" "qjpcodecs" "qkrcodecs" "qtwcodecs"
+      "phononwidgets" "qdeclarativeview" "qt3supportwidgets" "qwebview"
+      "qglgraphicssystem" "qtracegraphicssystem" "qsvgicon" "qgif" "qico"
+      "qjpeg" "qmng" "qsvg" "qtga" "qtiff" "qmldbg_inspector" "qmldbg_tcp"
+      "qtscriptdbus")
+    (find-qt-plugins-directory)
+    :key #+windows (lambda (path) (make-pathname :name (format NIL "~a4" (pathname-name path)) :defaults path))
+         #-windows #'identity)))
