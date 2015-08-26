@@ -45,7 +45,7 @@
                           #+linux #p"/usr/lib/"
                           #+linux #p"/usr/local/lib/"
                           #+linux #p"/usr/lib64/qt48/"
-                          #+linux #.(uiop:wilden #p"/usr/lib/")
+                          #+linux #p"/usr/lib/*/"
                           #+osx-ports #p"/opt/local/lib/"
                           #+osx-brew #p"/usr/local/Cellar/qt/4.8.7/lib/*.framework/"
                           #+osx-fink #p"/sw/lib/qt4-mac/lib/*.framework/")
@@ -63,7 +63,7 @@
        (loop for dir in '(#+windows #p"C:/Qt/4.8.7/plugins/*/"
                           #+linux #p"/usr/lib/qt4/plugins/*/"
                           #+linux #p"/usr/local/lib/qt4/plugins/*/"
-                          #+linux #p"/usr/lib/**/plugins/*/"
+                          #+linux #p"/usr/lib/*/qt4/plugins/*/"
                           #+osx-ports #p"/opt/local/share/qt4/plugins/*/"
                           #+osx-brew #p"/usr/local/Cellar/qt/4.8.7/plugins/*/"
                           #+osx-fink #p"/sw/lib/qt4-mac/plugins/*/")

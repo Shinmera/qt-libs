@@ -1,14 +1,24 @@
 language: common-lisp
+sudo: required
 
 env:
   matrix:
     - LISP=sbcl
     - LISP=ccl
 
+addons:
+  apt:
+    packages:
+    - libqt4-dev
+    - qt4-qmake
+    - libphonon4
+    - libphonon-dev
+    - libqt4-opengl
+    - libqt4-webkit
+
 install:
-  # Qt
-  - sudo apt-get update -qq
-  - sudo apt-get install -y libqt4-dev qt4-qmake libphonon4 libphonon-dev libqt4-opengl libqt4-webkit
+  - sudo apt-get update
+  - sudo apt-get install libqt4-dev qt4-qmake libphonon4 libphonon-dev libqt4-opengl libqt4-webkit
   # X server
   - export DISPLAY=:99.0
   - sh -e /etc/init.d/xvfb start
@@ -17,8 +27,9 @@ install:
 
 script:
   - cl -e '(ql:quickload :qt-lib-generator)'
+       -e '(ql:quickload :dissect)'
        -e '(setf qt-lib-generator::*max-cpus* 4)'
-       -e '(ql:quickload :qt-libs)'
+       -e '(handler-bind ((error (quote dissect:present))) (ql:quickload :qt-libs))'
        -e '(qt:make-qapplication)'
        -e '(format T "~&~%!!! WOAH IT WORKS !!!~&~%")'
 
