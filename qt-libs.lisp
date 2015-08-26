@@ -11,7 +11,10 @@
   (:export
    #:*standalone-libs-dir*
    #:ensure-standalone-libs
-   #:load-libcommonqt))
+   #:load-libcommonqt
+   #:set-qt-plugin-paths
+   #:patch-qt
+   #:unpatch-qt))
 (in-package #:org.shirakumo.qtools.libs)
 
 (defvar *standalone-libs-dir* (asdf:system-relative-pathname :qt-libs "standalone" :type :directory))
@@ -33,9 +36,9 @@
   (let ((dirty force)
         (source-type #-windows :sources #+windows :compiled))
     (flet ((ensure-installed (so system)
-             (when (or force (not (uiop:file-exists-p (shared-library-file :name so :defaults standalone-dir))))
+             (when (or force (and (not (uiop:file-exists-p (shared-library-file :name so :defaults standalone-dir)))))
                (install-system system :source-type source-type)
-               (copy-libs (shared-library-files (asdf:find-system system)) standalone-dir)
+               (copy-libs (shared-library-files system) standalone-dir)
                (setf dirty T))))
       (ensure-installed "QtCore" :qt4)
       (ensure-installed "smokebase" :smokegen)
@@ -60,6 +63,43 @@
   (:windows "commonqt.dll")
   (t (:default "libcommonqt")))
 
+(defvar *original-funcs* (make-hash-table :test 'eql))
+
+(defun csymb (def)
+  (etypecase def
+    (list (find-symbol (string (second def)) (string (first def))))
+    (symbol def)
+    (string (find-symbol def))))
+
+(defun original-func (name)
+  (gethash (csymb name) *original-funcs*))
+
+(defun (setf original-func) (func name)
+  (setf (gethash (csymb name) *original-funcs*) func))
+
+(defun apply-original-func (name &rest args)
+  (apply #'apply
+         (or (original-func name)
+             (error "SOMETHING PROBABLY WENT HORRIBLY WRONG! I was asked to find the original function to ~s, yet it has not been saved!"
+                    name))
+         args))
+
+(defun swap-func (original new)
+  (let ((original (csymb original))
+        (new (csymb new)))
+    (unless (original-func original)
+      (setf (original-func original)
+            (fdefinition original)))
+    (unless (eql (fdefinition original) (fdefinition new))
+      (unless (eql (fdefinition original) (original-func original))
+        (warn "Function definition got changed under our nose!"))
+      (status 0 "Swapping out ~s for ~s." original new)
+      (setf (fdefinition original) (fdefinition new)))))
+
+(defun restore-func (original)
+  (status 0 "Restoring ~s to original definition." original)
+  (setf (fdefinition original) (original-func original)))
+
 (defvar *libs-loaded* NIL)
 (defun load-libcommonqt (&key force)
   (when (or (not *libs-loaded*) force)
@@ -75,3 +115,20 @@
     (cffi:use-foreign-library libcommonqt)
     (when (find-package :qt) (setf (symbol-value (find-symbol "*LIBRARY-LOADED-P*" :QT)) T))
     (setf *libs-loaded* T)))
+
+(defun set-qt-plugin-paths (&rest paths)
+  (funcall (csymb '(qt interpret-call)) "QCoreApplication" "setLibraryPaths"
+           (mapcar #'uiop:native-namestring paths)))
+
+(defun make-qapplication (&rest args)
+  (or (symbol-value (csymb '(qt *qapplication*)))
+      (prog1 (apply-original-func '(QT MAKE-QAPPLICATION) args)
+        (set-qt-plugin-paths *standalone-libs-dir*))))
+
+(defun patch-qt ()
+  (swap-func '(qt load-libcommonqt) 'load-libcommonqt)
+  (swap-func '(qt make-qapplication) 'make-qapplication))
+
+(defun unpatch-qt ()
+  (restore-func '(qt load-libcommonqt))
+  (restore-func '(qt make-qapplication)))
