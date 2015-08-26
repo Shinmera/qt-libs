@@ -72,3 +72,6 @@
           #+linux "lin" #+darwin "mac" #+windows "win" #-(or linux darwin windows) (error "Platform not supported.")
           #+x86-64 "64" #+x86 "32" #-(or x86-64 x86) (error "Platform not supported.")
           project))
+
+(defun read-path ()
+  (pathname (read)))
