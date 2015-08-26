@@ -11,7 +11,7 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
     (let ((lines (cl-ppcre:split "\\s*\\n\\s*" (uiop:run-program (format NIL "otool -L ~s" (filename pathname)) :output :string))))
       (mapcar (lambda (line)
                 (cl-ppcre:register-groups-bind (name) ("^(.*) \\(compatibility version" line)
-                                               name))
+                  name))
               (cdr lines)))))
 
 (defun dylib-set-install-name (pathname name)
@@ -43,7 +43,7 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
                   (if corresponding
                       (format NIL "@loader_path/~a" (filename corresponding))
                       dep))))
-              ((search "/opt/local/" dep)
+              ((find dep '("/opt/local/" "/usr/local/" "/sw/lib/") :test (lambda (a b) (search b a)))
                (dylib-set-dependency-name
                 pathname dep
                 (let ((corresponding (find-similar path files)))
