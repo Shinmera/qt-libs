@@ -38,9 +38,7 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
   (ql-dist:ensure-installed (ql-dist:find-system "qt")))
 
 (flet ((symbf (package name)
-         (fdefinition (find-symbol (string name) package)))
-       ((setf symbf) (function package name)
-         (setf (fdefinition (find-symbol (string name) package)) function)))
+         (fdefinition (find-symbol (string name) package))))
   (defmethod asdf:perform :after ((op asdf:compile-op) (c (eql (asdf:find-system :qt-libs))))
     (funcall (symbf :qt-libs :ensure-standalone-libs)))
 
@@ -53,6 +51,5 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
     NIL)
 
   (defmethod asdf:perform :after ((op asdf:load-op) (c (eql (asdf:find-system :qt))))
-    ;; Override standard load function and use ours instead.
-    (setf (symbf :qt :load-libcommonqt)
-          (symbf :qt-libs :load-libcommonqt))))
+    ;; Override standard functions and use ours instead.
+    (funcall (symbf :qt-libs :patch-qt))))
