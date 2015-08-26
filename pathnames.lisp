@@ -61,7 +61,8 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
                            (funcall
                             key
                             (uiop:resolve-symlinks
-                             (shared-library-file :name name :defaults defaults))))
+                             (first (or (directory (shared-library-file :name name :defaults defaults))
+                                        #+(or osx-brew osx-fink) (directory (merge-pathnames name defaults)))))))
                          names)))
 
 (defun determine-shared-library-type (pathname)
@@ -77,4 +78,5 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
          (subseq (pathname-name pathname) 0 (search ".so." (pathname-name pathname))))
         (T
          (or (cl-ppcre:register-groups-bind (name) ("^(.+)\\.\\d\\.\\d\\.\\d$" (pathname-name pathname)) name)
-             (pathname-name pathname)))))
+             #-windows (concatenate 'string "lib" (pathname-name pathname))
+             #+windows (pathname-name pathname)))))
