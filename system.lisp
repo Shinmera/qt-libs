@@ -69,6 +69,9 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
 
 (defgeneric shared-library-files (system))
 
+(defmethod shared-library-files ((name T))
+  (shared-library-files (asdf:find-system name)))
+
 (defmethod shared-library-files ((system build-system))
   (mapcar #'uiop:resolve-symlinks
           (uiop:directory-files (first (asdf:output-files 'install-op system))
