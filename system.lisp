@@ -154,7 +154,7 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
                                  #-darwin T #+darwin NIL *ld-library-path*)
                   #-unix ""))
     (run-here "~amake -j ~d -C ~s -f ~s~@[ ~a~]"
-              preamble (cpu-count) (uiop:pathname-directory-pathname makefile)
+              preamble (max 1 (1- (cpu-count))) (uiop:pathname-directory-pathname makefile)
               (format NIL "~a~@[.~a~]" (pathname-name makefile) (pathname-type makefile))
               (make-flags system))))
 
