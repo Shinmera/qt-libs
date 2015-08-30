@@ -75,3 +75,30 @@
 
 (defun read-path ()
   (pathname (read)))
+
+(defun generate-checksum-func (system)
+  (let ((system (etypecase system
+                  (asdf:system (asdf:component-name system))
+                  ((or string symbol) (string-downcase system)))))
+    (format T "~&(defmethod checksum ((system (eql (asdf:find-system :~a))) &key type)
+  (when (equal (version system) ~s)
+    (case type" system (version (asdf:find-system system)))
+    
+    (flet ((file (short)
+             (asdf:system-relative-pathname :qt-libs (format NIL "package/~a-~a.zip" short system))))
+      ;; Source
+      (when (uiop:file-exists-p (file "src"))
+        (format T "~&      (:sources")
+        (format T "~&       ~s" (checksum-file (file "src")))
+        (format T ")"))
+      ;; Compiled
+      (format T "~&      (:compiled")
+      (loop for (short os plaf) in '(("lin64" linux x86-64)
+                                     ("mac64" darwin x86-64)
+                                     ("win32" windows x86)
+                                     ("win64" windows x86-64))
+            do (when (uiop:file-exists-p (file short))
+                 (format T "~&       #+(and ~(~a~) ~(~a~))" os plaf)
+                 (format T "~&       ~s" (checksum-file (file short)))))
+      (format T ")"))
+    (format T ")))")))
