@@ -13,7 +13,7 @@
                :smokegen))
 
 (defmethod checksum ((system (eql (asdf:find-system :smokeqt))) &key type)
-  (when (equal (version system) "qt-libs1.1.0")
+  (when (equal (version system) "qt-libs1.1.2")
     (case type
       (:sources
        #(108 90 185 171 223 253 193 216 61 232 182 207 199 114 170 209 233 72
