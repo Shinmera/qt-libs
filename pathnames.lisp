@@ -58,11 +58,9 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
 (defun make-shared-library-files (names defaults &key (key #'identity))
   (remove-if-not #'uiop:file-exists-p
                  (mapcar (lambda (name)
-                           (funcall
-                            key
-                            (uiop:resolve-symlinks
-                             (first (or (directory (shared-library-file :name name :defaults defaults))
-                                        #+(or osx-brew osx-fink) (directory (merge-pathnames name defaults)))))))
+                           (uiop:resolve-symlinks
+                            (first (or (directory (funcall key (shared-library-file :name name :defaults defaults)))
+                                       #+(or osx-brew osx-fink) (directory (funcall key (merge-pathnames name defaults)))))))
                          names)))
 
 (defun determine-shared-library-type (pathname)

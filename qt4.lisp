@@ -89,7 +89,11 @@
       path)))
 
 (defmethod asdf:output-files ((op install-op) (system (eql (asdf:find-system :qt4))))
-  (values (directory (find-qt-lib-directory)) T))
+  (values (or (ignore-errors (append (directory (find-qt-lib-directory))
+                                     (directory (find-qt-plugins-directory))))
+              (append (call-next-method)
+                      (list (shared-library-file :name #+unix "QtCore" #+windows "QtCore4"
+                                                 :defaults (relative-dir "install" "lib"))))) T))
 
 (defmethod shared-library-files ((system (eql (asdf:find-system :qt4))))
   (append
@@ -101,7 +105,8 @@
        "QtXml" "QtXmlPatterns" "QtWebKit" "phonon")
      ;; These are additional libraries that are apparently provided by ports.
      #+osx-ports '("z" "png" "ssl" "crypto" "dbus-1.3"))
-    (find-qt-lib-directory)
+    (or (ignore-errors (find-qt-lib-directory))
+        (relative-dir (first (asdf:output-files 'install-op system)) "lib"))
     :key #+windows (lambda (path) (make-pathname :name (format NIL "~a4" (pathname-name path)) :defaults path))
          #-windows #'identity)
    ;; Additional libraries that are stored in the Qt plugins folder.
@@ -113,6 +118,7 @@
       "qglgraphicssystem" "qtracegraphicssystem" "qsvgicon" "qgif" "qico"
       "qjpeg" "qmng" "qsvg" "qtga" "qtiff" "qmldbg_inspector" "qmldbg_tcp"
       "qtscriptdbus")
-    (find-qt-plugins-directory)
+    (or (ignore-errors (find-qt-plugins-directory))
+        (relative-dir (first (asdf:output-files 'install-op system)) "lib"))
     :key #+windows (lambda (path) (make-pathname :name (format NIL "~a4" (pathname-name path)) :defaults path))
          #-windows #'identity)))
