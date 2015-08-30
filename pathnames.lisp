@@ -78,5 +78,5 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
          (subseq (pathname-name pathname) 0 (search ".so." (pathname-name pathname))))
         (T
          (or (cl-ppcre:register-groups-bind (name) ("^(.+)\\.\\d\\.\\d\\.\\d$" (pathname-name pathname)) name)
-             #-windows (concatenate 'string "lib" (pathname-name pathname))
-             #+windows (pathname-name pathname)))))
+             (cl-ppcre:register-groups-bind (NIL name) ("^(lib)?(.+)$" (pathname-name pathname))
+               #+windows name #-windows (concatenate 'string "lib" name))))))
