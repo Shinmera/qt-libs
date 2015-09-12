@@ -22,12 +22,17 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
   (with-chdir (pathname)
     (run "install_name_tool -change ~s ~s ~s" dependency name (filename pathname))))
 
-;; This is stupid, but I can't be bothered to do better.
+;; Attempts to find a good match by a distance function.
 (defun find-similar (pathname files)
-  (let ((stripped (cl-ppcre:register-groups-bind (NIL name) ("(lib)?(.*?)\\." (filename pathname)) name)))
-    (loop for file in files
-          when (search stripped (filename file))
-          return file)))
+  (cl-ppcre:register-groups-bind (NIL name) ("(lib)?(.*?)\\." (filename pathname))
+    (cadar
+     (sort (loop for file in files
+                 for filename = (filename file)
+                 for position = (search name filename)
+                 when position
+                 collect (list (+ position (- (length filename) (length name)))
+                               file))
+           #'< :key #'first))))
 
 (defun fix-dylib-paths (pathname)
   ;; Primitively set the install name to the filename
