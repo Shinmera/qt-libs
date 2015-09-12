@@ -12,7 +12,7 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
     (if pos (subseq type (1+ pos)) type)))
 
 (defun filename (pathname)
-  (format NIL "~a.~a" (pathname-name pathname) (pathname-type pathname)))
+  (format NIL "~a~@[.~a~]" (pathname-name pathname) (pathname-type pathname)))
 
 (defun relative-dir (relative &rest subdirs)
   (loop for sub in subdirs
