@@ -12,19 +12,31 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
       (mapcar (lambda (line)
                 (cl-ppcre:register-groups-bind (name) ("^(.*) \\(compatibility version" line)
                   name))
-              (cdr lines)))))
+              ;; First two lines are the file itself again.
+              (cddr lines)))))
+
+(defun dylib-set-options (pathname &key name dependencies rpaths add-rpaths remove-rpaths)
+  (assert (evenp (length dependencies)) ()
+          "Must supply a balanced number of DEPENDENCY and NEW pairs.")
+  (assert (evenp (length rpaths)) ()
+          "Must supply a balanced number of RPATH and NEW pairs.")
+  (with-chdir (pathname)
+    (run "install_name_tool ~@[-id ~s ~]~
+                            ~{-change ~s ~s ~}~
+                            ~{-rpath ~s ~s ~}~
+                            ~{-add_rpath ~s ~}~
+                            ~{-delete_rpath ~s ~}~
+                            ~s" name dependencies rpaths add-rpaths remove-rpaths (filename pathname))))
 
 (defun dylib-set-install-name (pathname name)
-  (with-chdir (pathname)
-    (run "install_name_tool -id ~s ~s" name (filename pathname))))
+  (dylib-set-options pathname :name name))
 
-(defun dylib-set-dependency-name (pathname dependency name)
-  (with-chdir (pathname)
-    (run "install_name_tool -change ~s ~s ~s" dependency name (filename pathname))))
+(defun dylib-set-dependency-name (pathname &rest pairs)
+  (dylib-set-options pathname :dependencies pairs))
 
 ;; Attempts to find a good match by a distance function.
 (defun find-similar (pathname files)
-  (cl-ppcre:register-groups-bind (NIL name) ("(lib)?(.*?)\\." (filename pathname))
+  (cl-ppcre:register-groups-bind (NIL name) ("(lib)?([^.]*)" (filename pathname))
     (cadar
      (sort (loop for file in files
                  for filename = (filename file)
@@ -35,24 +47,23 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
            #'< :key #'first))))
 
 (defun fix-dylib-paths (pathname)
-  ;; Primitively set the install name to the filename
-  (dylib-set-install-name pathname (filename pathname))
   ;; Primitively change relative paths to use @loader-path and matching name in dir.
-  (let ((files (remove "dylib" (uiop:directory-files pathname) :key #'pathname-type :test-not #'string=)))
+  (let ((files (remove "dylib" (uiop:directory-files pathname) :key #'pathname-type :test-not #'string=))
+        (pairs ()))
     (dolist (dep (dylib-dependencies pathname))
-      (let ((path (pathname dep)))
-        (cond ((uiop:relative-pathname-p path)
-               (dylib-set-dependency-name
-                pathname dep
-                (let ((corresponding (find-similar path files)))
-                  (if corresponding
-                      (format NIL "@loader_path/~a" (filename corresponding))
-                      dep))))
-              ((find dep '("/opt/local/" "/usr/local/" "/sw/lib/") :test (lambda (a b) (search b a)))
-               (dylib-set-dependency-name
-                pathname dep
-                (let ((corresponding (find-similar path files)))
-                  (if corresponding
-                      (format NIL "@loader_path/~a" (filename corresponding))
-                      dep))))))))
+      (unless (search "@loader_path/" dep)
+        (let* ((path (pathname dep))
+               (new (when (or (uiop:relative-pathname-p path)
+                              (find dep '("/opt/local/" "/usr/local/" "/sw/lib/") :test (lambda (a b) (search b a))))
+                      (let ((corresponding (find-similar path files)))
+                        (if corresponding
+                            (format NIL "@loader_path/~a" (filename corresponding))
+                            dep)))))
+          (when new
+            (status 0 "Replacing ~a's dependency ~s with ~s."
+                    pathname dep new)
+            (push new pairs)
+            (push dep pairs)))))
+    ;; Primitively set the install name to the filename and set the new deps.
+    (dylib-set-options pathname :name (filename pathname) :dependencies pairs))
   pathname)
