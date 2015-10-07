@@ -20,6 +20,7 @@ While qt-libs provides the foreign libraries for Smoke and CommonQt, you still n
 * You will need a 64x Windows copy, version 7 or higher. Lower versions might work, but I will not test them.
 * You can run both 32x and 64x versions of your implementation, but not both at the same time.
 * You do *not* need to install or download Qt itself. Qt-libs will download a precompiled version.
+* Drakma requires OpenSSL to download the archives. See <https://slproweb.com/products/Win32OpenSSL.html>.
 * Currently Windows 7, 8, and 10 have been tested and confirmed to work.
 
 ### Linux
