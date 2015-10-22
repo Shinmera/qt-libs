@@ -61,7 +61,7 @@
                      #+(and x86-64 windows) #p"C:/Program Files/smokegenerator/bin/"
                      #+(and x86 windows) #p"C:/Program Files (x86)/smokegenerator/bin/")
         when (smokegen-on-path-p dir)
-        return (values (list dir) T)
+        return (values (list dir dir) T)
         finally (return (append (call-next-method)
                                 (list (shared-library-file :name "smokebase" :defaults (relative-dir "install" "lib")))))))
 
