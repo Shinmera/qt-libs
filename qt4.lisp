@@ -89,8 +89,10 @@
       path)))
 
 (defmethod asdf:output-files ((op install-op) (system (eql (asdf:find-system :qt4))))
-  (values (or (ignore-errors (append (directory (find-qt-lib-directory))
-                                     (directory (find-qt-plugins-directory))))
+  (values (or (unless (eql (source-type op) :compiled)
+                ;; Don't search when we're downloading anyway
+                (ignore-errors (append (directory (find-qt-lib-directory))
+                                       (directory (find-qt-plugins-directory)))))
               (append (call-next-method)
                       (list (shared-library-file :name #+unix "QtCore" #+windows "QtCore4"
                                                  :defaults (relative-dir "install" "lib"))))) T))
