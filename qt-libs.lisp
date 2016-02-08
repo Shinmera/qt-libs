@@ -19,7 +19,7 @@
 
 (defvar *standalone-libs-dir* (asdf:system-relative-pathname :qt-libs "standalone" :type :directory))
 
-(defun copy-libs (from to &key (test (constantly T)))
+(defun copy-libs (from to &key (test (constantly T)) force)
   (dolist (input (etypecase from
                    (list from)
                    (pathname (uiop:directory-files from))))
@@ -27,7 +27,7 @@
       (let ((output (make-pathname :defaults to
                                    :type (determine-shared-library-type input)
                                    :name (determine-shared-library-name input))))
-        (unless (uiop:file-exists-p output)
+        (when (or force (not (uiop:file-exists-p output)))
           (ensure-directories-exist output)
           (status 1 "Copying ~s to ~s" (uiop:native-namestring input) (uiop:native-namestring output))
           (uiop:copy-file input output))))))
@@ -38,7 +38,7 @@
     (flet ((ensure-installed (so system)
              (when (or force (and (not (uiop:file-exists-p (shared-library-file :name so :defaults standalone-dir)))))
                (install-system system :source-type source-type)
-               (copy-libs (shared-library-files system) standalone-dir)
+               (copy-libs (shared-library-files system) standalone-dir :force force)
                (setf dirty T))))
       (ensure-installed "QtCore" :qt4)
       (ensure-installed "smokebase" :smokegen)
