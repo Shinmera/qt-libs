@@ -20,7 +20,7 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
   (funcall (find-symbol (string :sha3-digest-file) :sha3) target))
 
 (defun download-file (url target)
-  (status 1 "Downloading ~a" url)
+  (status 1 "Downloading ~a to ~a" url target)
   (ensure-system :drakma)
   (with-open-file (output target :direction :output
                                  :if-exists :supersede
