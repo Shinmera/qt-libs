@@ -84,7 +84,7 @@
                           #+osx-fink #p"/sw/lib/qt4-mac/plugins/")
              for resolved = (directory dir)
              when resolved
-             return resolved)
+             return (first resolved))
        (error "Could not find Qt plugins directory!"))
     (specify-path (path)
       :report "Manually specify a path to use. Make sure to make the path wild so that it points to all plugins subdirectories."
