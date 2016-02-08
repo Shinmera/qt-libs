@@ -26,7 +26,8 @@
    #:dylib-dependencies
    #:dylib-set-install-name
    #:dylib-set-dependency-name
-   #:fix-dylib-paths)
+   #:fix-dylib-paths
+   #:fix-dylib-collection)
   ;; pathnames.lisp
   (:export
    #:filetype
