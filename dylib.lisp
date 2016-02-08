@@ -46,9 +46,9 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
                                file))
            #'< :key #'first))))
 
-(defun fix-dylib-paths (pathname)
+(defun fix-dylib-paths (pathname &optional (replacements (uiop:directory-files pathname)))
   ;; Primitively change relative paths to use @loader-path and matching name in dir.
-  (let ((files (remove "dylib" (uiop:directory-files pathname) :key #'pathname-type :test-not #'string=))
+  (let ((files (remove "dylib" replacements :key #'pathname-type :test-not #'string=))
         (pairs ()))
     (dolist (dep (dylib-dependencies pathname))
       (unless (search "@loader_path/" dep)
@@ -57,7 +57,8 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
                               (find dep '("/opt/local/" "/usr/local/" "/sw/lib/") :test (lambda (a b) (search b a))))
                       (let ((corresponding (find-similar path files)))
                         (if corresponding
-                            (format NIL "@loader_path/~a" (filename corresponding))
+                            (format NIL "@loader_path/~a" (uiop:native-namestring
+                                                           (relative-pathname pathname corresponding)))
                             dep)))))
           (when new
             (status 0 "Replacing ~a's dependency ~s with ~s."
@@ -67,3 +68,7 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
     ;; Primitively set the install name to the filename and set the new deps.
     (dylib-set-options pathname :name (filename pathname) :dependencies pairs))
   pathname)
+
+(defun fix-dylib-collection (files)
+  (dolist (file files)
+    (fix-dylib-paths file files)))

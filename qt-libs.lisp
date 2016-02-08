@@ -50,8 +50,7 @@
       #+windows (ensure-installed "qtcore" :qt4))
     #+darwin
     (when dirty
-      (dolist (file (uiop:directory-files standalone-dir (make-pathname :type "dylib" :defaults uiop:*wild-file*)))
-        (fix-dylib-paths file))))
+      (fix-dylib-collection (uiop:directory-files standalone-dir (make-pathname :type "dylib" :defaults uiop:*wild-path*)))))
   standalone-dir)
 
 (cffi:define-foreign-library libsmokebase
