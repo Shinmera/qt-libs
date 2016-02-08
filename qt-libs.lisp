@@ -22,15 +22,18 @@
 (defun copy-libs (from to &key (test (constantly T)) force)
   (dolist (input (etypecase from
                    (list from)
-                   (pathname (uiop:directory-files from))))
-    (when (funcall test input)
-      (let ((output (make-pathname :defaults to
-                                   :type (determine-shared-library-type input)
-                                   :name (determine-shared-library-name input))))
-        (when (or force (not (uiop:file-exists-p output)))
-          (ensure-directories-exist output)
-          (status 1 "Copying ~s to ~s" (uiop:native-namestring input) (uiop:native-namestring output))
-          (uiop:copy-file input output))))))
+                   (pathname (append (uiop:directory-files from)
+                                     (uiop:subdirectories from)))))
+    (if (uiop:directory-pathname-p input)
+        (copy-libs input (relative-dir to (car (last (pathname-directory input)))) :test test :force force)
+        (when (funcall test input)
+          (let ((output (make-pathname :defaults to
+                                       :type (determine-shared-library-type input)
+                                       :name (determine-shared-library-name input))))
+            (when (or force (not (uiop:file-exists-p output)))
+              (ensure-directories-exist output)
+              (status 1 "Copying ~s to ~s" (uiop:native-namestring input) (uiop:native-namestring output))
+              (uiop:copy-file input output)))))))
 
 (defun ensure-standalone-libs (&key force (standalone-dir *standalone-libs-dir*))
   (let ((dirty force)
@@ -123,7 +126,7 @@
 (defun make-qapplication (&rest args)
   (or (symbol-value (csymb '(qt *qapplication*)))
       (prog1 (apply-original-func '(QT MAKE-QAPPLICATION) args)
-        (set-qt-plugin-paths *standalone-libs-dir*))))
+        (set-qt-plugin-paths *standalone-libs-dir* (relative-dir *standalone-libs-dir* "plugins")))))
 
 (defun patch-qt ()
   (swap-func '(qt load-libcommonqt) 'load-libcommonqt)
