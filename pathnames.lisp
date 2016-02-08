@@ -43,7 +43,7 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
           (final-dir (list :relative)))
       (loop for a = (car from-dir)
             for b = (car to-dir)
-            while (equal a b)
+            while (and (equal a b) from-dir to-dir)
             do (pop from-dir) (pop to-dir))
       (loop repeat (length from-dir)
             do (push :up final-dir))
