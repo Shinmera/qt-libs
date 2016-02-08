@@ -103,17 +103,19 @@
 (defmethod shared-library-files ((system (eql (asdf:find-system :qt4))))
   (append
    (make-shared-library-files
-    (append
-     '("Qt3Support" "QtCLucene" "QtCore" "QtDBus" "QtDeclarative" "QtDesigner"
-       "QtDesignerComponents" "QtGui" "QtHelp" "QtMultimedia" "QtNetwork"
-       "QtOpenGL" "QtScript" "QtScriptTools" "QtSql" "QtSvg" "QtTest" "QtUiTools"
-       "QtXml" "QtXmlPatterns" "QtWebKit" "phonon")
-     ;; These are additional libraries that are apparently provided by ports.
-     #+osx-ports '("z" "png" "ssl" "crypto" "dbus-1.3"))
+    '("Qt3Support" "QtCLucene" "QtCore" "QtDBus" "QtDeclarative" "QtDesigner"
+      "QtDesignerComponents" "QtGui" "QtHelp" "QtMultimedia" "QtNetwork"
+      "QtOpenGL" "QtScript" "QtScriptTools" "QtSql" "QtSvg" "QtTest" "QtUiTools"
+      "QtXml" "QtXmlPatterns" "QtWebKit" "phonon")
     (or (ignore-errors (find-qt-lib-directory))
         (relative-dir (first (asdf:output-files 'install-op system)) "lib"))
     :key #+windows (lambda (path) (make-pathname :name (format NIL "~a4" (pathname-name path)) :defaults path))
          #-windows #'identity)
+   ;; These are additional libraries that are apparently provided by ports.
+   #+osx-ports
+   (make-shared-library-files
+    '("z" "png" "ssl" "crypto" "dbus-1.3")
+    #p"/opt/local/lib/")
    ;; Additional libraries that are stored in the Qt plugins folder.
    ;; The fun never ends. OH DEAR.
    (list (or (ignore-errors (find-qt-plugins-directory))
