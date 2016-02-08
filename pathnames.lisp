@@ -32,7 +32,7 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
            (make-pathname :directory rootpath :defaults file)))))
 
 (defun relative-pathname (from to)
-  (let ((from (merge-pathnames (uiop:ensure-directory-pathname from)))
+  (let ((from (merge-pathnames from))
         (to (merge-pathnames to)))
     (unless (equal (pathname-host from) (pathname-host to))
       (error "Cannot relativise pathnames across hosts."))
