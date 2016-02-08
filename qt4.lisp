@@ -73,13 +73,13 @@
 (defun find-qt-plugins-directory ()
   (restart-case
       (or
-       (loop for dir in '(#+windows #p"C:/Qt/4.8.7/plugins/*/"
-                          #+linux #p"/usr/lib/qt4/plugins/*/"
-                          #+linux #p"/usr/local/lib/qt4/plugins/*/"
-                          #+linux #p"/usr/lib/*/qt4/plugins/*/"
-                          #+osx-ports #p"/opt/local/share/qt4/plugins/*/"
-                          #+osx-brew #p"/usr/local/Cellar/qt/4.8.7/plugins/*/"
-                          #+osx-fink #p"/sw/lib/qt4-mac/plugins/*/")
+       (loop for dir in '(#+windows #p"C:/Qt/4.8.7/plugins/"
+                          #+linux #p"/usr/lib/qt4/plugins/"
+                          #+linux #p"/usr/local/lib/qt4/plugins/"
+                          #+linux #p"/usr/lib/*/qt4/plugins/"
+                          #+osx-ports #p"/opt/local/share/qt4/plugins/"
+                          #+osx-brew #p"/usr/local/Cellar/qt/4.8.7/plugins/"
+                          #+osx-fink #p"/sw/lib/qt4-mac/plugins/")
              when (directory dir)
              return dir)
        (error "Could not find Qt plugins directory!"))
@@ -113,14 +113,5 @@
          #-windows #'identity)
    ;; Additional libraries that are stored in the Qt plugins folder.
    ;; The fun never ends. OH DEAR.
-   (make-shared-library-files
-    '("qtaccessiblecompatwidgets" "qtaccessiblewidgets" "qcorewlanbearer"
-      "qgenericbearer" "qcncodecs" "qjpcodecs" "qkrcodecs" "qtwcodecs"
-      "phononwidgets" "qdeclarativeview" "qt3supportwidgets" "qwebview"
-      "qglgraphicssystem" "qtracegraphicssystem" "qsvgicon" "qgif" "qico"
-      "qjpeg" "qmng" "qsvg" "qtga" "qtiff" "qmldbg_inspector" "qmldbg_tcp"
-      "qtscriptdbus")
-    (or (ignore-errors (find-qt-plugins-directory))
-        (relative-dir (first (asdf:output-files 'install-op system)) "lib"))
-    :key #+windows (lambda (path) (make-pathname :name (format NIL "~a4" (pathname-name path)) :defaults path))
-         #-windows #'identity)))
+   (list (or (ignore-errors (find-qt-plugins-directory))
+             (relative-dir (first (asdf:output-files 'install-op system)) "lib" "plugins")))))
