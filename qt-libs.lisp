@@ -13,6 +13,7 @@
    #:ensure-standalone-libs
    #:load-libcommonqt
    #:set-qt-plugin-paths
+   #:fix-qt-plugin-paths
    #:patch-qt
    #:unpatch-qt))
 (in-package #:org.shirakumo.qtools.libs)
@@ -122,10 +123,13 @@
   (funcall (csymb '(qt interpret-call)) "QCoreApplication" "setLibraryPaths"
            (mapcar #'uiop:native-namestring paths)))
 
+(defun fix-qt-plugin-paths (&optional (base *standalone-libs-dir*))
+  (set-qt-plugin-paths base (relative-dir base "plugins")))
+
 (defun make-qapplication (&rest args)
   (or (symbol-value (csymb '(qt *qapplication*)))
       (prog1 (apply-original-func '(QT MAKE-QAPPLICATION) args)
-        (set-qt-plugin-paths *standalone-libs-dir* (relative-dir *standalone-libs-dir* "plugins")))))
+        (fix-qt-plugin-paths))))
 
 (defun patch-qt ()
   (swap-func '(qt load-libcommonqt) 'load-libcommonqt)
