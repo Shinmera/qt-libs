@@ -76,8 +76,8 @@
                 (uiop:native-namestring (uiop:pathname-directory-pathname makefile))))))
 
 (defmethod asdf:output-files ((op generate-op) (system (eql (asdf:find-system :libcommonqt))))
-  (values (list (shared-library-file :name "commonqt" :defaults (first (asdf:output-files 'download-op system))))
-          T))
+  (append (call-next-method)
+          (list (shared-library-file :name "commonqt" :defaults (first (asdf:output-files 'download-op system))))))
 
 (defmethod asdf:perform ((op install-op) (system (eql (asdf:find-system :libcommonqt))))
   T)
