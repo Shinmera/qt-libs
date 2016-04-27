@@ -217,7 +217,8 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
 
 (defun clean-system (system)
   (flet ((deldir (dir)
-           (when (uiop:directory-exists-p dir)
+           (when (and (uiop:directory-exists-p dir)
+                      (uiop:subpathp dir asdf:*user-cache*))
              (uiop:delete-directory-tree dir :validate (constantly T)))))
     (deldir (first (asdf:output-files 'install-op system)))
     (deldir (first (asdf:output-files 'generate-op system)))
