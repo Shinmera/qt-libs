@@ -54,18 +54,6 @@
       (fix-dylib-collection (uiop:directory-files standalone-dir (make-pathname :type "dylib" :defaults uiop:*wild-path*)))))
   standalone-dir)
 
-(cffi:define-foreign-library libsmokebase
-  (:windows "smokebase.dll")
-  (t (:default "libsmokebase")))
-
-(cffi:define-foreign-library libsmokeqtcore
-  (:windows "smokeqtcore.dll")
-  (t (:default "libsmokeqtcore")))
-
-(cffi:define-foreign-library libcommonqt
-  (:windows "commonqt.dll")
-  (t (:default "libcommonqt")))
-
 (defvar *original-funcs* (make-hash-table :test 'eql))
 
 (defun csymb (def)
@@ -113,10 +101,10 @@
     ;; See QT::LOAD-LIBCOMMONQT for an explanation of this.
     #+(and sbcl (not windows)) (sb-sys:enable-interrupt sb-unix:sigchld :default)
     ;; Do the loading.
-    (cffi:use-foreign-library libsmokebase)
-    #+darwin (cffi:use-foreign-library libsmokeqtcore)
-    (cffi:use-foreign-library libcommonqt)
-    (when (find-package :qt) (setf (symbol-value (find-symbol "*LIBRARY-LOADED-P*" :QT)) T))
+    (cffi:load-foreign-library (shared-library-file :name "smokebase" :defaults *standalone-libs-dir*))
+    #+darwin (cffi:load-foreign-library (shared-library-file :name "smokeqtcore" :defaults *standalone-libs-dir*))
+    (cffi:load-foreign-library (shared-library-file :name "commonqt" :defaults *standalone-libs-dir*))
+    (when (find-package :qt) (setf (symbol-value (find-symbol (string '*LIBRARY-LOADED-P*) :QT)) T))
     (setf *libs-loaded* T)))
 
 (defun set-qt-plugin-paths (&rest paths)
