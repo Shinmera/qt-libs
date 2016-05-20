@@ -101,9 +101,14 @@
     ;; See QT::LOAD-LIBCOMMONQT for an explanation of this.
     #+(and sbcl (not windows)) (sb-sys:enable-interrupt sb-unix:sigchld :default)
     ;; Do the loading.
-    (cffi:load-foreign-library (shared-library-file :name "smokebase" :defaults *standalone-libs-dir*))
-    #+darwin (cffi:load-foreign-library (shared-library-file :name "smokeqtcore" :defaults *standalone-libs-dir*))
-    (cffi:load-foreign-library (shared-library-file :name "commonqt" :defaults *standalone-libs-dir*))
+    (flet ((load-lib (name)
+             (cffi:load-foreign-library (shared-library-file :name name :defaults *standalone-libs-dir*))))
+      (load-lib #-windows "QtCore" #+windows "QtCore4")
+      (load-lib #-windows "QtGui" #+windows "QtGui4")
+      (load-lib "smokebase")
+      (load-lib "smokeqtcore")
+      (load-lib "smokeqtgui")
+      (load-lib "commonqt"))
     (when (find-package :qt) (setf (symbol-value (find-symbol (string '*LIBRARY-LOADED-P*) :QT)) T))
     (setf *libs-loaded* T)))
 
