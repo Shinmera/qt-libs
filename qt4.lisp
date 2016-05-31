@@ -64,7 +64,7 @@
                           #+linux #p"/usr/lib/*/"
                           #+osx-ports #p"/opt/local/lib/"
                           #+osx-ports #p"/opt/local/libexec/qt4/lib/"
-                          #+osx-brew #p"/usr/local/Cellar/qt/4.8.7/lib/*.framework/"
+                          #+osx-brew #p"/usr/local/Cellar/qt/4.8.7*/lib/*.framework/"
                           #+osx-fink #p"/sw/lib/qt4-mac/lib/*.framework/")
              when (qt4-on-path-p dir)
              return dir)
