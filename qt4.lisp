@@ -38,6 +38,11 @@
          17 54 227 63 77 137 112 144 214 67 76 158 210 210 199 65 142 233 5 221 42 76
          72)))))
 
+(defmethod asdf:perform ((op download-op) (c (eql (asdf:find-system :qt4))))
+  ;; There's really no point in downloading the sources for qt4
+  (unless (eql (source-type op) :sources) 
+    (call-next-method)))
+
 (defmethod asdf:perform ((op generate-op) (c (eql (asdf:find-system :qt4))))
   NIL)
 
