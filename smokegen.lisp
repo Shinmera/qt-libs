@@ -50,6 +50,13 @@
   (append (call-next-method)
           (list (make-pathname :name "smokegen" :type NIL :defaults (relative-dir "generate" "bin")))))
 
+#+darwin
+;; OS X El Capitan breaks DYLD_LIBRARY_PATH, so we need to fix the binary up.
+(defmethod asdf:perform :after ((op install-op) (system (eql (asdf:find-system :smokegen))))
+  (dylib-set-dependency-name
+   (merge-pathnames "bin/smokegen" (car (asdf:output-files op system)))
+   "libcppparser.dylib" "@executable_path/../lib/libcppparser.dylib"))
+
 (defun smokegen-on-path-p (path)
   (uiop:file-exists-p
    (shared-library-file :name "smokebase" :defaults path)))
