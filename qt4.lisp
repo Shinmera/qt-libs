@@ -61,6 +61,7 @@
                           #+linux #p"/usr/lib/"
                           #+linux #p"/usr/local/lib/"
                           #+linux #p"/usr/lib64/qt48/"
+                          #+linux #p"/usr/lib64/"
                           #+linux #p"/usr/lib/*/"
                           #+osx-ports #p"/opt/local/lib/"
                           #+osx-ports #p"/opt/local/libexec/qt4/lib/"
