@@ -111,10 +111,6 @@
 (defvar *libs-loaded* NIL)
 (defun load-libcommonqt (&key force)
   (when (or (not *libs-loaded*) force)
-    (pushnew *standalone-libs-dir* cffi:*foreign-library-directories*)
-    #+windows (pushnew-path *standalone-libs-dir* "PATH")
-    #+darwin (pushnew-path *standalone-libs-dir* "DYLD_LIBRARY_PATH")
-    #+unix (pushnew-path *standalone-libs-dir* "LD_LIBRARY_PATH")
     ;; See QT::LOAD-LIBCOMMONQT for an explanation of this.
     #+(and sbcl (not windows)) (sb-sys:enable-interrupt sb-unix:sigchld :default)
     ;; Do the loading.
@@ -181,3 +177,8 @@
   (restore-func '(qt load-libcommonqt))
   (restore-func '(qt make-qapplication))
   (restore-func '(qt ensure-smoke)))
+
+(pushnew *standalone-libs-dir* cffi:*foreign-library-directories*)
+#+windows (pushnew-path *standalone-libs-dir* "PATH")
+#+darwin (pushnew-path *standalone-libs-dir* "DYLD_LIBRARY_PATH")
+#+unix (pushnew-path *standalone-libs-dir* "LD_LIBRARY_PATH")
