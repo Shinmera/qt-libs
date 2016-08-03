@@ -65,6 +65,12 @@
     (symbol def)
     (string (find-symbol def))))
 
+(defmacro qtcall (symb &rest args)
+  `(funcall (csymb '(qt ,symb)) ,@args))
+
+(defmacro qtvar (symb)
+  `(symbol-value (csymb '(qt ,symb))))
+
 (defun original-func (name)
   (gethash (csymb name) *original-funcs*))
 
@@ -124,21 +130,54 @@
     (setf *libs-loaded* T)))
 
 (defun set-qt-plugin-paths (&rest paths)
-  (funcall (csymb '(qt interpret-call)) "QCoreApplication" "setLibraryPaths"
-           (mapcar #'uiop:native-namestring paths)))
+  (qtcall interpret-call "QCoreApplication" "setLibraryPaths"
+          (mapcar #'uiop:native-namestring paths)))
 
 (defun fix-qt-plugin-paths (&optional (base *standalone-libs-dir*))
   (set-qt-plugin-paths base (relative-dir base "plugins")))
 
 (defun make-qapplication (&rest args)
-  (or (symbol-value (csymb '(qt *qapplication*)))
+  (or (qtvar *qapplication*)
       (prog1 (apply-original-func '(QT MAKE-QAPPLICATION) args)
         (fix-qt-plugin-paths))))
 
+;; We only override this to replace the explicit file loading by our
+;; ensure-lib-loaded function. Everything else is semantically the same
+;; but we have to use delegated symbol resolving as this file is loaded
+;; before the QT package exists, hence the usage of QTCALL and QTVAR
+;; where necessary.
+(defun ensure-smoke (name)
+  (qtcall ensure-loaded)
+  (let ((name (string-downcase name)))
+    (unless (qtcall named-module-number name)
+      (let ((idx (qtvar *n-modules*)))
+        (unless (< idx (length (qtvar *module-table*)))
+          (error "Sorry, +module-bits+ exceeded"))
+        (ensure-lib-loaded (shared-library-file :name name :defaults *standalone-libs-dir*))
+        (let ((init (cffi:foreign-symbol-pointer
+                     (format nil "init_~A_Smoke" name))))
+          (assert init)
+          (cffi:foreign-funcall-pointer init () :void))
+        (let ((smoke-struct
+                (cffi:mem-ref (cffi:foreign-symbol-pointer
+                               (format nil "~A_Smoke" name))
+                              :pointer))
+              (data (cffi:foreign-alloc `(:struct ,(csymb '(qt SmokeData))))))
+          (setf (svref (qtvar *module-table*) idx) smoke-struct)
+          (setf (svref (qtvar *module-data-table*) idx) data)
+          (qtcall sw_smoke smoke-struct
+                  data
+                  (cffi:get-callback (csymb '(qt deletion-callback)))
+                  (cffi:get-callback (csymb '(qt method-invocation-callback)))))
+        (incf (qtvar *n-modules*))
+        idx))))
+
 (defun patch-qt ()
   (swap-func '(qt load-libcommonqt) 'load-libcommonqt)
-  (swap-func '(qt make-qapplication) 'make-qapplication))
+  (swap-func '(qt make-qapplication) 'make-qapplication)
+  (swap-func '(qt ensure-smoke) 'ensure-smoke))
 
 (defun unpatch-qt ()
   (restore-func '(qt load-libcommonqt))
-  (restore-func '(qt make-qapplication)))
+  (restore-func '(qt make-qapplication))
+  (restore-func '(qt ensure-smoke)))
