@@ -11,6 +11,7 @@
   (:export
    #:*standalone-libs-dir*
    #:ensure-standalone-libs
+   #:ensure-lib-loaded
    #:load-libcommonqt
    #:set-qt-plugin-paths
    #:fix-qt-plugin-paths
@@ -93,6 +94,14 @@
   (status 0 "Restoring ~s to original definition." original)
   (setf (fdefinition original) (original-func original)))
 
+(defun ensure-lib-loaded (file &optional name)
+  (let ((name (or name (intern (string-upcase (pathname-name file))))))
+    (cffi::register-foreign-library
+     name `((T ,(qt-lib-generator::filename file)))
+     :search-path (uiop:ensure-directory-pathname file))
+    (unless (cffi:foreign-library-loaded-p name)
+      (cffi:load-foreign-library name))))
+
 (defvar *libs-loaded* NIL)
 (defun load-libcommonqt (&key force)
   (when (or (not *libs-loaded*) force)
@@ -104,7 +113,7 @@
     #+(and sbcl (not windows)) (sb-sys:enable-interrupt sb-unix:sigchld :default)
     ;; Do the loading.
     (flet ((load-lib (name)
-             (cffi:load-foreign-library (shared-library-file :name name :defaults *standalone-libs-dir*))))
+             (ensure-lib-loaded (shared-library-file :name name :defaults *standalone-libs-dir*))))
       (load-lib #-windows "QtCore" #+windows "QtCore4")
       (load-lib #-windows "QtGui" #+windows "QtGui4")
       (load-lib "smokebase")
