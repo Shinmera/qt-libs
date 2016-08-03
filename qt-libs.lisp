@@ -149,7 +149,9 @@
       (let ((idx (qtvar *n-modules*)))
         (unless (< idx (length (qtvar *module-table*)))
           (error "Sorry, +module-bits+ exceeded"))
-        (ensure-lib-loaded (shared-library-file :name name :defaults *standalone-libs-dir*))
+        (ensure-lib-loaded (shared-library-file
+                            :name (format NIL "smoke~a" name)
+                            :defaults *standalone-libs-dir*))
         (let ((init (cffi:foreign-symbol-pointer
                      (format nil "init_~A_Smoke" name))))
           (assert init)
