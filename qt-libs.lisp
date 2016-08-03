@@ -101,7 +101,8 @@
   (setf (fdefinition original) (original-func original)))
 
 (defun ensure-lib-loaded (file &optional name)
-  (let ((name (or name (intern (string-upcase (pathname-name file))))))
+  (let ((file (merge-pathnames file *standalone-libs-dir*))
+        (name (or name (intern (string-upcase (pathname-name file))))))
     (cffi::register-foreign-library
      name `((T ,(qt-lib-generator::filename file)))
      :search-path (uiop:ensure-directory-pathname file))
