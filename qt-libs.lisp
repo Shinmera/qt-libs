@@ -39,9 +39,8 @@
 
 (defun ensure-standalone-libs (&key force (standalone-dir *standalone-libs-dir*))
   (let ((dirty force)
-        (source-type #+darwin :compiled
-                     #+windows :compiled
-                     #-(or darwin windows) :sources))
+        (source-type #+(or linux darwin windows) :compiled
+                     #-(or linux darwin windows) :sources))
     (flet ((ensure-installed (so system)
              (when (or force (and (not (uiop:file-exists-p (shared-library-file :name so :defaults standalone-dir)))))
                (install-system system :source-type source-type)
