@@ -16,7 +16,8 @@
    #:set-qt-plugin-paths
    #:fix-qt-plugin-paths
    #:patch-qt
-   #:unpatch-qt))
+   #:unpatch-qt
+   #:setup-paths))
 (in-package #:org.shirakumo.qtools.libs)
 
 (defvar *standalone-libs-dir* (asdf:system-relative-pathname :qt-libs "standalone" :type :directory))
@@ -180,7 +181,9 @@
   (restore-func '(qt make-qapplication))
   (restore-func '(qt ensure-smoke)))
 
-(pushnew *standalone-libs-dir* cffi:*foreign-library-directories*)
-#+windows (pushnew-path *standalone-libs-dir* "PATH")
-#+darwin (pushnew-path *standalone-libs-dir* "DYLD_LIBRARY_PATH")
-#+unix (pushnew-path *standalone-libs-dir* "LD_LIBRARY_PATH")
+(defun setup-paths ()
+  (pushnew *standalone-libs-dir* cffi:*foreign-library-directories*)
+  #+windows (pushnew-path *standalone-libs-dir* "PATH")
+  #+darwin (pushnew-path *standalone-libs-dir* "DYLD_LIBRARY_PATH")
+  #+unix (pushnew-path *standalone-libs-dir* "LD_LIBRARY_PATH"))
+(setup-paths)
