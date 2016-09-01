@@ -6,7 +6,7 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
 
 (in-package #:cl-user)
 (asdf:defsystem qt-libs
-  :version "1.1.4"
+  :version "2.0.0"
   :license "Artistic"
   :author "Nicolas Hafner <shinmera@tymoon.eu>"
   :maintainer "Nicolas Hafner <shinmera@tymoon.eu>"

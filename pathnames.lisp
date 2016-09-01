@@ -68,18 +68,24 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
           (progn ,@body)
        (uiop:delete-file-if-exists ,name))))
 
+(defun directory-name (file)
+  (car (last (pathname-directory file))))
+
 (defun copy-directory-files (dir to &key replace)
   (dolist (file (merge-pathnames uiop:*wild-file* dir))
-    (cond ((uiop:directory-pathname-p file)
-           (let ((to (relative-dir to (car (last (pathname-directory file))))))
-             (ensure-directories-exist to)
-             (copy-directory-files file to)))
-          (T
-           (let ((to (make-pathname :name (pathname-name file)
-                                    :type (pathname-type file)
-                                    :defaults to)))
-             (when (or replace (not (uiop:file-exists-p to)))
-               (uiop:copy-file file to)))))))
+    (copy-file file to :replace replace)))
+
+(defun copy-file (file to &key replace)
+  (cond ((uiop:directory-pathname-p file)
+         (let ((to (relative-dir to (directory-name file))))
+           (ensure-directories-exist to)
+           (copy-directory-files file to)))
+        (T
+         (let ((to (make-pathname :name (pathname-name file)
+                                  :type (pathname-type file)
+                                  :defaults to)))
+           (when (or replace (not (uiop:file-exists-p to)))
+             (uiop:copy-file file to))))))
 
 (defun shared-library-file (&rest args &key host device directory name version defaults)
   (declare (ignore host device directory version))

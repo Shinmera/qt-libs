@@ -9,6 +9,10 @@
 (defclass foreign-library ()
   ((name :initform NIL :accessor name)))
 
+(defmethod initialize-instance :after ((library foreign-library) &key name)
+  (unless name
+    (setf (name library) (string-downcase (class-name (class-of library))))))
+
 (defgeneric download-sources (foreign-library to))
 (defgeneric download-binaries (foreign-library to &key platform arch))
 (defgeneric prepare-sources (foreign-library at))
@@ -33,7 +37,7 @@
 
 (defmethod binaries-url ((library github-library) &key (platform (platform)) (arch (arch)))
   (format NIL "~a/releases/download/~a/~(~a~)~a-~a.zip"
-          (url library) (tag library) platform arch (name library)))
+          (url library) (or (tag library) (error "No TAG set.")) platform arch (name library)))
 
 (defmethod download-sources ((library github-library) to)
   (download-file (sources-url library) to))
@@ -67,6 +71,12 @@
     (with-chdir (dir)
       (run-here "cmake ~a~{ ~s~}" at (cmake-flags library)))))
 
+(defmethod compile-sources ((library cmake-build-library) at)
+  (call-next-method library (merge-pathnames (cmake-build-directory library) at)))
+
+(defmethod install-sources ((library cmake-build-library) from to)
+  (call-next-method library (merge-pathnames (cmake-build-directory library) from) to))
+
 (defclass checksummed-library (foreign-library)
   ((checksums :initarg :checksums :initform NIL :accessor checksums)))
 
@@ -88,16 +98,28 @@
               file (checksum-string checksum) (checksum-string received)))))
 
 (defmethod download-sources :after ((library checksummed-library) to)
-  (check-checksum to (expected-checksum library :sources)))
+  (let ((expected (expected-checksum library :sources)))
+    (if expected
+        (check-checksum to expected)
+        (warn "No checksum for source archive of ~a" library))))
 
 (defmethod download-binaries :after ((library checksummed-library) to &key platform arch)
-  (check-checksum to (expected-checksum library :binaries :platform platform :arch arch)))
+  (let ((expected (expected-checksum library :binaries :platform platform :arch arch)))
+    (if expected
+        (check-checksum to expected)
+        (warn "No checksum for ~a ~a binary archive of ~a" platform arch library))))
 
 (defclass locally-available-library (foreign-library)
-  ())
+  ((local-file-cache :initform :unsaved :accessor local-file-cache)))
 
 (defgeneric find-local-files (locally-available-library))
 (defgeneric locally-available-p (locally-available-library))
+
+(defmethod find-local-files :around ((library locally-available-library))
+  (let ((cache (local-file-cache library)))
+    (if (eql cache :unsaved)
+        (setf (local-file-cache library) (call-next-method))
+        cache)))
 
 (defmethod locally-available-p ((library locally-available-library))
   (not (null (find-local-files library))))
@@ -105,11 +127,7 @@
 (defmethod install ((library locally-available-library) to &key force)
   (cond ((locally-available-p library)
          (dolist (file (find-local-files library))
-           (let ((to (make-pathname :name (pathname-name file)
-                                    :type (pathname-type file)
-                                    :defaults to)))
-             (when (or force (not (uiop:file-exists-p to)))
-               (uiop:copy-file file to)))))
+           (copy-file file to :replace force)))
         ((next-method-p)
          (call-next-method))
         (T
