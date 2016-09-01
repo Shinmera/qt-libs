@@ -10,7 +10,7 @@
 
 (defun externalize (thing)
   (typecase thing
-    (list thing)
+    (list (mapcar #'externalize thing))
     (string thing)
     (pathname (uiop:native-namestring thing))
     (T (princ-to-string thing))))
@@ -76,6 +76,10 @@
 (defun read-path ()
   (pathname (read)))
 
+(defun check-file-exists (file)
+  (unless (probe-file file)
+    (error "The file is required but does not exist:~%  ~s" file)))
+
 (defun generate-checksum-func (system)
   (let ((system (etypecase system
                   (asdf:system (asdf:component-name system))
@@ -102,3 +106,16 @@
                  (format T "~&       ~s" (checksum-file (file short)))))
       (format T ")"))
     (format T ")))")))
+
+(defmacro with-retry-restart ((name report &rest report-args) &body body)
+  (let ((tag (gensym "RETRY-TAG"))
+        (return (gensym "RETURN"))
+        (stream (gensym "STREAM")))
+    `(block ,return
+       (tagbody
+          ,tag (restart-case
+                   (return-from ,return
+                     (progn ,@body))
+                 (,name ()
+                   :report (lambda (,stream) (format ,stream ,report ,@report-args))
+                   (go ,tag)))))))
