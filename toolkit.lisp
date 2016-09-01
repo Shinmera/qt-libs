@@ -119,3 +119,20 @@
                  (,name ()
                    :report (lambda (,stream) (format ,stream ,report ,@report-args))
                    (go ,tag)))))))
+
+(defun qt-libs-cache-directory ()
+  (uiop:pathname-directory-pathname
+   (asdf:output-file 'asdf:compile-op (asdf:find-component (asdf:find-system :qt-libs) "qt-libs"))))
+
+(defun platform ()
+  #+windows :win
+  #+linux :lin
+  #+darwin :mac
+  #-(or windows linux darwin)
+  (error "This platform is unsupported."))
+
+(defun arch ()
+  #+x86-64 :64
+  #+x86 :32
+  #-(or x86-64 x86)
+  (error "This architecture is unsupported."))

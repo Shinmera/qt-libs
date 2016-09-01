@@ -6,36 +6,6 @@
 
 (in-package #:org.shirakumo.qtools.libs.generator)
 
-(defun qt-libs-cache-directory ()
-  (uiop:pathname-directory-pathname
-   (asdf:output-file 'asdf:compile-op (asdf:find-component (asdf:find-system :qt-libs) "qt-libs"))))
-
-(defun platform ()
-  #+windows :win
-  #+linux :lin
-  #+darwin :mac
-  #-(or windows linux darwin)
-  (error "This platform is unsupported."))
-
-(defun arch ()
-  #+x86-64 :64
-  #+x86 :32
-  #-(or x86-64 x86)
-  (error "This architecture is unsupported."))
-
-(defun copy-directory-files (dir to &key replace)
-  (dolist (file (merge-pathnames uiop:*wild-file* dir))
-    (cond ((uiop:directory-pathname-p file)
-           (let ((to (relative-dir to (car (last (pathname-directory file))))))
-             (ensure-directories-exist to)
-             (copy-directory-files file to)))
-          (T
-           (let ((to (make-pathname :name (pathname-name file)
-                                    :type (pathname-type file)
-                                    :defaults to)))
-             (when (or replace (not (uiop:file-exists-p to)))
-               (uiop:copy-file file to)))))))
-
 (defclass foreign-library ()
   ((name :initform NIL :accessor name)))
 

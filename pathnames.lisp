@@ -68,6 +68,19 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
           (progn ,@body)
        (uiop:delete-file-if-exists ,name))))
 
+(defun copy-directory-files (dir to &key replace)
+  (dolist (file (merge-pathnames uiop:*wild-file* dir))
+    (cond ((uiop:directory-pathname-p file)
+           (let ((to (relative-dir to (car (last (pathname-directory file))))))
+             (ensure-directories-exist to)
+             (copy-directory-files file to)))
+          (T
+           (let ((to (make-pathname :name (pathname-name file)
+                                    :type (pathname-type file)
+                                    :defaults to)))
+             (when (or replace (not (uiop:file-exists-p to)))
+               (uiop:copy-file file to)))))))
+
 (defun shared-library-file (&rest args &key host device directory name version defaults)
   (declare (ignore host device directory version))
   (apply #'make-pathname :type #+windows "dll" #+darwin "dylib" #-(or windows darwin) "so"
