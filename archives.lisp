@@ -37,23 +37,6 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
         (close input))))
   target)
 
-(defun safely-download-file (url target checksum)
-  (loop do (download-file url target)
-        until (cond (checksum
-                     (with-simple-restart (retry "Retry downloading.")
-                       (let ((file-checksum (checksum-file target)))
-                         (unless (equalp checksum file-checksum)
-                           (cerror "I am sure that this is fine."
-                                   "SHA3 file mismatch for ~s!~
-                                  ~&Expected ~a~
-                                  ~&got      ~a"
-                                   (uiop:native-namestring target) (checksum-string checksum) (checksum-string file-checksum)))
-                         (status 1 "Checksum test passed")
-                         T)))
-                    (T (status 1 "No checksum available, skipping test.")
-                       T)))
-  target)
-
 (defun extract-zip-archive (from to &key (strip-folder))
   (ensure-system :zip)
   (funcall (find-symbol (string :unzip) :zip) from to)

@@ -20,11 +20,12 @@
                (:file "setenv")
                (:file "dylib")
                (:file "archives")
-               (:file "system")
-               (:file "qt4")
-               (:file "smokegen")
-               (:file "smokeqt")
-               (:file "commonqt"))
+               (:file "build")
+               ;(:file "qt4")
+               ;(:file "smokegen")
+               ;(:file "smokeqt")
+               ;(:file "commonqt")
+               )
   :depends-on (:trivial-features
                :cl-ppcre
                #+sbcl :sb-posix))

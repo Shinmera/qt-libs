@@ -50,62 +50,12 @@
            2)
        *max-cpus*))
 
-(defun url-filetype (url)
-  (subseq url (1+ (or (position #\. url :start (or (position #\/ url :from-end T) 0))
-                      (error "Unable to detect filetype for ~s" url)))))
-
-(defun project-url (project version &key type)
-  (ecase type
-    (:git (project-git-url project))
-    (:compiled (project-release-url project version))
-    (:sources (project-sources-url project version))))
-
-(defun project-git-url (project)
-  (format NIL "https://github.com/Shinmera/~a.git" project))
-
-(defun project-sources-url (project version)
-  (format NIL "https://github.com/Shinmera/~a/archive/~a.zip" project version))
-
-(defun project-release-url (project version)
-  (format NIL "https://github.com/Shinmera/~a/releases/download/~a/~a~a-~a.zip"
-          project version
-          #+linux "lin" #+darwin "mac" #+windows "win" #-(or linux darwin windows) (error "Platform not supported.")
-          #+x86-64 "64" #+x86 "32" #-(or x86-64 x86) (error "Platform not supported.")
-          project))
-
 (defun read-path ()
   (pathname (read)))
 
 (defun check-file-exists (file)
   (unless (probe-file file)
     (error "The file is required but does not exist:~%  ~s" file)))
-
-(defun generate-checksum-func (system)
-  (let ((system (etypecase system
-                  (asdf:system (asdf:component-name system))
-                  ((or string symbol) (string-downcase system)))))
-    (format T "~&(defmethod checksum ((system (eql (asdf:find-system :~a))) &key type)
-  (when (equal (version system) ~s)
-    (case type" system (version (asdf:find-system system)))
-    
-    (flet ((file (short)
-             (asdf:system-relative-pathname :qt-libs (format NIL "package/~a-~a.zip" short system))))
-      ;; Source
-      (when (uiop:file-exists-p (file "src"))
-        (format T "~&      (:sources")
-        (format T "~&       ~s" (checksum-file (file "src")))
-        (format T ")"))
-      ;; Compiled
-      (format T "~&      (:compiled")
-      (loop for (short os plaf) in '(("lin64" linux x86-64)
-                                     ("mac64" darwin x86-64)
-                                     ("win32" windows x86)
-                                     ("win64" windows x86-64))
-            do (when (uiop:file-exists-p (file short))
-                 (format T "~&       #+(and ~(~a~) ~(~a~))" os plaf)
-                 (format T "~&       ~s" (checksum-file (file short)))))
-      (format T ")"))
-    (format T ")))")))
 
 (defmacro with-retry-restart ((name report &rest report-args) &body body)
   (let ((tag (gensym "RETRY-TAG"))
