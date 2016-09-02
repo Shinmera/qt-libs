@@ -53,19 +53,6 @@
   (unless (probe-file file)
     (error "The file is required but does not exist:~%  ~s" file)))
 
-(defmacro with-retry-restart ((name report &rest report-args) &body body)
-  (let ((tag (gensym "RETRY-TAG"))
-        (return (gensym "RETURN"))
-        (stream (gensym "STREAM")))
-    `(block ,return
-       (tagbody
-          ,tag (restart-case
-                   (return-from ,return
-                     (progn ,@body))
-                 (,name ()
-                   :report (lambda (,stream) (format ,stream ,report ,@report-args))
-                   (go ,tag)))))))
-
 (defun qt-libs-cache-directory ()
   (uiop:pathname-directory-pathname
    (asdf:output-file 'asdf:compile-op (asdf:find-component (asdf:find-system :qt-libs) "qt-libs"))))

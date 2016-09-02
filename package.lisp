@@ -70,7 +70,6 @@
    #:check-prerequisite
    #:cpu-count
    #:check-file-exists
-   #:with-retry-restart
    #:qt-libs-cache-directory
    #:platform
    #:arch

@@ -27,11 +27,15 @@
 (defgeneric stage (stage foreign-library &key force &allow-other-keys))
 (defgeneric output-files (foreign-library))
 
-(defmethod stage :around (stage (library foreign-library) &key)
-  (with-retry-restart (retry "Retry stage ~a for ~a" stage library)
-    (status 0 "Running stage ~a for ~a" stage library)
-    (call-next-method)
-    library))
+(defmethod stage :around (stage (library foreign-library) &rest args &key)
+  (restart-case
+      (progn
+        (status 0 "Running stage ~a for ~a" stage library)
+        (call-next-method)
+        library)
+    (retry ()
+      :report (lambda (s) (format s "Retry stage ~s ~s" stage library))
+      (apply #'stage stage library args))))
 
 (defmethod stage ((stage (eql :clean)) (library foreign-library) &key)
   (when (uiop:directory-exists-p (build-directory library))
