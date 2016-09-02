@@ -25,6 +25,6 @@
 
 (defmethod output-files ((library smokegen))
   (make-shared-library-files
-   '("cppparser")
+   '("smokebase")
    (list (install-directory library)
          (subdirectory (install-directory library) "lib"))))
