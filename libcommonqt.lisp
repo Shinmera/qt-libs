@@ -6,7 +6,7 @@
 
 (in-package #:org.shirakumo.qtools.libs.generator)
 
-(defclass commonqt (make-build-library checksummed-library cached-build-library)
+(defclass libcommonqt (make-build-library github-library checksummed-library)
   ((smokeqt :initarg :smokeqt :initform (make-instance 'smokeqt) :accessor smokeqt))
   (:default-initargs :tag "qt-libs2.0.0"))
 
@@ -20,20 +20,23 @@
         (dolist (base basepaths)
           (format stream "~&LIBS += -L~s~
                           ~&INCLUDEPATH += ~s"
-                  (uiop:native-namestring (relative-dir base "lib/"))
-                  (uiop:native-namestring (relative-dir base "include/"))))
+                  (externalize (subdirectory base "lib/"))
+                  (externalize (subdirectory base "include/"))))
         (format stream "~&~a" contents))
       file)))
 
-(defmethod prepare-sources ((library commonqt) at)
-  (let ((project-file (merge-pathnames "commonqt.pro" at)))
+(defmethod stage ((stage (eql :prepare-sources)) (library libcommonqt) &key)
+  (check-prerequisite "Qt4.8" "qmake-qt4" "qmake")
+  (stage :install-sources (smokeqt library))
+  (let ((project-file (merge-pathnames "commonqt.pro" (build-directory library))))
     (fix-commonqt-pro-file project-file
-                           (install-dir (smokeqt library))
-                           (install-dir (smokegen (smokeqt library))))
+                           (install-directory (smokeqt library))
+                           (install-directory (smokegen (smokeqt library))))
     (run-here "`command -v qmake-qt4 || command -v qmake` ~a~s -o ~s"
               #+darwin "-spec macx-g++ " #-darwin ""
-              (uiop:native-namestring project-file)
-              (uiop:native-namestring (merge-pathnames (make-file library) at)))))
+              (externalize project-file)
+              (externalize (merge-pathnames (make-file library) (build-directory library))))))
 
-(defmethod install-sources ((library commonqt) at to)
-  (copy-file (shared-library-file :name "commonqt") to))
+(defmethod stage ((stage (eql :install-sources)) (library libcommonqt) &key)
+  (copy-file (shared-library-file :name "commonqt" :defaults (build-directory library))
+             (install-directory library)))

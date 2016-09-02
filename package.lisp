@@ -6,78 +6,87 @@
 
 (in-package #:cl-user)
 (defpackage #:qt-lib-generator
-  (:use #:cl)
+  (:use #:cl #:pathname-utils)
   (:nicknames #:org.shirakumo.qtools.libs.generator)
-  ;; archives.lisp
+  ;; build.lisp
   (:export
-   #:clone
-   #:checksum-string
-   #:checksum-file
-   #:download-file
-   #:safely-download-file
-   #:extract-zip-archive
-   #:extract-tar-archive
-   #:extract-archive)
-  ;; commonqt.lisp
+   #:foreign-library
+   #:name
+   #:base-directory
+   #:build-directory
+   #:install-directory
+   #:stage
+   #:output-files
+   #:download-library
+   #:sources-archive
+   #:binaries-archive
+   #:github-library
+   #:url
+   #:tag
+   #:build-library
+   #:make-build-library
+   #:make-file
+   #:make-flags
+   #:cmake-build-library
+   #:cmake-flags
+   #:checksummed-library
+   #:checksums
+   #:expected-checksum
+   #:locally-available-library
+   #:local-file-cache
+   #:find-local-files
+   #:locally-available-p)
+  ;; libcommonqt.lisp
   (:export
+   #:libcommonqt
+   #:smokeqt
    #:fix-commonqt-pro-file)
-  ;; dylib.lisp
+  ;; osx
   (:export
    #:dylib-dependencies
+   #:dylib-set-options
    #:dylib-set-install-name
    #:dylib-set-dependency-name
+   #:find-similar
    #:fix-dylib-paths
    #:fix-dylib-collection)
-  ;; pathnames.lisp
+  ;; qt4
   (:export
-   #:filetype
-   #:filename
-   #:relative-dir
-   #:upqards-file
-   #:with-chdir
-   #:with-temp-file
-   #:shared-library-file
-   #:make-shared-lirbary-files
-   #:determine-shared-library-type
-   #:determine-shared-library-name)
-  ;; qt4.lisp
-  (:export)
-  ;; setenv.lisp
+   #:qt4)
+  ;; smokegen
   (:export
-   #:setenv
-   #:get-path
-   #:set-path
-   #:pushnew-path)
-  ;; smokegen.lisp
-  (:export)
-  ;; smokeqt.lisp
-  (:export)
-  ;; system.lisp
+   #:smokegen)
+  ;; smokeqt
   (:export
-   #:build-system-op
-   #:download-op
-   #:generate-op
-   #:install-op
-   #:build-system
-   #:make-build-system
-   #:cmake-build-system
-   #:origin
-   #:shared-library-files
-   #:install-system
-   #:clean-system)
-  ;; toolkit.lisp
+   #:smokeqt)
+  ;; toolkit
   (:export
    #:*max-cpus*
    #:externalize
    #:status
-   #:run
    #:run-here
    #:ensure-system
    #:application-available-p
-   #:test-prerequisite
+   #:check-prerequisite
    #:cpu-count
-   #:url-filetype
-   #:project-url
-   #:project-git-url
-   #:project-sources-url
-   #:project-release-url))
+   #:check-file-exists
+   #:with-retry-restart
+   #:qt-libs-cache-directory
+   #:platform
+   #:arch
+   #:with-chdir
+   #:copy-directory-files
+   #:copy-file
+   #:shared-library-file
+   #:make-shared-library-files
+   #:determine-shared-library-type
+   #:determine-shared-library-name
+   #:checksum-string
+   #:checksum-file
+   #:download-file
+   #:extract-archive
+   #:check-checksum
+   #:setenv
+   #:get-path
+   #:set-path
+   #:pushnew-path))

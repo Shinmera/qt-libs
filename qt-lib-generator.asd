@@ -16,16 +16,12 @@
   :components ((:file "package")
                (:file "toolkit")
                (:file "osx")
-               (:file "pathnames")
-               (:file "setenv")
-               (:file "dylib")
-               (:file "archives")
                (:file "build")
-               ;(:file "qt4")
-               ;(:file "smokegen")
-               ;(:file "smokeqt")
-               ;(:file "commonqt")
-               )
+               (:file "qt4")
+               (:file "smokegen")
+               (:file "smokeqt")
+               (:file "libcommonqt"))
   :depends-on (:trivial-features
+               :pathname-utils
                :cl-ppcre
                #+sbcl :sb-posix))

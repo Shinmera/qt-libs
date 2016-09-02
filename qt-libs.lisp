@@ -7,7 +7,7 @@
 (in-package #:cl-user)
 (defpackage #:qt-libs
   (:nicknames #:org.shirakumo.qtools.libs)
-  (:use #:cl #:qt-lib-generator)
+  (:use #:cl #:qt-lib-generator #:pathname-utils)
   (:export
    #:*standalone-libs-dir*
    #:ensure-standalone-libs
@@ -28,7 +28,7 @@
                    (pathname (append (uiop:directory-files from)
                                      (uiop:subdirectories from)))))
     (if (uiop:directory-pathname-p input)
-        (copy-libs input (relative-dir to (car (last (pathname-directory input)))) :test test :force force)
+        (copy-libs input (subdirectory to (car (last (pathname-directory input)))) :test test :force force)
         (when (funcall test input)
           (let ((output (make-pathname :defaults to
                                        :type (determine-shared-library-type input)
@@ -39,19 +39,17 @@
               (uiop:copy-file input output)))))))
 
 (defun ensure-standalone-libs (&key force (standalone-dir *standalone-libs-dir*))
-  (let ((dirty force)
-        (source-type #+(or linux darwin windows) :compiled
-                     #-(or linux darwin windows) :sources))
+  (let ((dirty force))
     (flet ((ensure-installed (so system)
              (when (or force (and (not (uiop:file-exists-p (shared-library-file :name so :defaults standalone-dir)))))
-               (install-system system :source-type source-type)
-               (copy-libs (shared-library-files system) standalone-dir :force force)
-               (setf dirty T))))
-      (ensure-installed "QtCore" :qt4)
-      (ensure-installed "smokebase" :smokegen)
-      (ensure-installed "smokeqtcore" :smokeqt)
-      (ensure-installed "commonqt" :libcommonqt)
-      #+windows (ensure-installed "qtcore" :qt4))
+               (let ((system (make-instance system)))
+                 (stage :install-sources system)
+                 (copy-libs (output-files system) standalone-dir :force force)
+                 (setf dirty T)))))
+      (ensure-installed "QtCore" 'qt4)
+      (ensure-installed "smokebase" 'smokegen)
+      (ensure-installed "smokeqtcore" 'smokeqt)
+      (ensure-installed "commonqt" 'libcommonqt))
     #+darwin
     (when dirty
       (fix-dylib-collection (uiop:directory-files standalone-dir (make-pathname :type "dylib" :defaults uiop:*wild-path*)))))
@@ -104,7 +102,7 @@
   (let ((file (merge-pathnames file *standalone-libs-dir*))
         (name (or name (intern (string-upcase (pathname-name file))))))
     (cffi::register-foreign-library
-     name `((T ,(qt-lib-generator::filename file)))
+     name `((T ,(file-name file)))
      :search-path (uiop:ensure-directory-pathname file))
     (unless (cffi:foreign-library-loaded-p name)
       (cffi:load-foreign-library name))))
@@ -131,7 +129,7 @@
           (mapcar #'uiop:native-namestring paths)))
 
 (defun fix-qt-plugin-paths (&optional (base *standalone-libs-dir*))
-  (set-qt-plugin-paths base (relative-dir base "plugins")))
+  (set-qt-plugin-paths base (subdirectory base "plugins")))
 
 (defun make-qapplication (&rest args)
   (or (qtvar *qapplication*)

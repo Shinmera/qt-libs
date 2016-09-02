@@ -6,7 +6,7 @@
 
 (in-package #:org.shirakumo.qtools.libs.generator)
 
-(defclass qt4 (github-library locally-available-library checksummed-library cached-build-library)
+(defclass qt4 (locally-available-library github-library checksummed-library)
   ()
   (:default-initargs :tag "qt-libs2.0.0"))
 
@@ -45,10 +45,28 @@
 (defmethod find-local-files ((system qt4))
   (append
    (make-shared-library-files
-    '("Qt3Support" "QtCLucene" "QtCore" "QtDBus" "QtDeclarative" "QtDesigner"
-      "QtDesignerComponents" "QtGui" "QtHelp" "QtMultimedia" "QtNetwork"
-      "QtOpenGL" "QtScript" "QtScriptTools" "QtSql" "QtSvg" "QtTest" "QtUiTools"
-      "QtXml" "QtXmlPatterns" "QtWebKit" "phonon")
+    '("Qt3Support"
+      "QtCLucene"
+      "QtCore"
+      "QtDBus"
+      "QtDeclarative"
+      "QtDesigner"
+      "QtDesignerComponents"
+      "QtGui"
+      "QtHelp"
+      "QtMultimedia"
+      "QtNetwork"
+      "QtOpenGL"
+      "QtScript"
+      "QtScriptTools"
+      "QtSql"
+      "QtSvg"
+      "QtTest"
+      "QtUiTools"
+      "QtXml"
+      "QtXmlPatterns"
+      "QtWebKit"
+      "phonon")
     (find-qt-lib-directory)
     :key #+windows (lambda (path) (make-pathname :name (format NIL "~a4" (pathname-name path)) :defaults path))
          #-windows #'identity)
@@ -60,14 +78,3 @@
    ;; Additional libraries that are stored in the Qt plugins folder.
    ;; The fun never ends. OH DEAR.
    (list (find-qt-plugins-directory))))
-
-(defmethod install ((library qt4) to &key (method :binaries) force (platform (platform)) (arch (arch)))
-  (case method
-    (:installed
-     (unless (locally-available-p library)
-       (error "Could not find local copies for ~a" library))
-     (dolist (file (find-local-files library))
-       (copy-file file (install-directory library) :replace force)))
-    (:binaries
-     (run-stage library :download-binaries :force force :platform platform :arch arch)))
-  (run-stage library :install :to to :force force))

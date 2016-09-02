@@ -6,23 +6,25 @@
 
 (in-package #:org.shirakumo.qtools.libs.generator)
 
-(defclass smokegen (cmake-build-library checksummed-library cached-build-library)
+(defclass smokegen (cmake-build-library github-library checksummed-library)
   ()
   (:default-initargs :tag "qt-libs2.0.0"))
 
 (defmethod cmake-flags ((library smokegen))
   (list* "-DCMAKE_BUILD_TYPE=Release"
-         (format NIL "-DCMAKE_INSTALL_PREFIX=~s" (install-directory library))
+         "-Wno-dev"
+         (format NIL "-DCMAKE_INSTALL_PREFIX=~a" (externalize (install-directory library)))
          (call-next-method)))
 
-(defmethod install-sources ((library make-build-library) at to)
-  (with-chdir (dir)
-    (run-here "make install -f ~s" (make-file library)))
+(defmethod stage :after ((stage (eql :install)) (library smokegen) &key)
   #+darwin
   ;; OS X El Capitan breaks DYLD_LIBRARY_PATH, so we need to fix the binary up.
   (dylib-set-dependency-name
    (merge-pathnames "bin/smokegen" to)
-   "libcppparser.dylib" "@executable_path/../lib/libcppparser.dylib")
-  )
+   "libcppparser.dylib" "@executable_path/../lib/libcppparser.dylib"))
 
-
+(defmethod output-files ((library smokegen))
+  (make-shared-library-files
+   '("cppparser")
+   (list (install-directory library)
+         (subdirectory (install-directory library) "lib"))))
