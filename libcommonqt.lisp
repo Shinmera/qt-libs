@@ -28,6 +28,7 @@
 (defmethod stage ((stage (eql :prepare-sources)) (library libcommonqt) &key)
   (check-prerequisite "Qt4.8" "qmake-qt4" "qmake")
   (stage :install-sources (smokeqt library))
+  (call-next-method)
   (let ((project-file (merge-pathnames "commonqt.pro" (build-directory library))))
     (fix-commonqt-pro-file project-file
                            (install-directory (smokeqt library))
