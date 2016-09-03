@@ -43,7 +43,7 @@
     (flet ((ensure-installed (so system)
              (when (or force (and (not (uiop:file-exists-p (shared-library-file :name so :defaults standalone-dir)))))
                (let ((system (make-instance system)))
-                 (stage mode system)
+                 (stage mode system :force force)
                  (copy-libs (output-files system) standalone-dir :force force)
                  (setf dirty T)))))
       (ensure-installed "QtCore" 'qt4)
