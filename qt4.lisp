@@ -27,7 +27,7 @@
                      #+osx-brew #p"/usr/local/Cellar/qt/4.8.7*/lib/*.framework/"
                      #+osx-fink #p"/sw/lib/qt4-mac/lib/*.framework/")
         when (qt4-on-path-p dir)
-        return dir))
+        collect dir))
 
 (defun find-qt-plugins-directory ()
   (loop for dir in '(#+windows #p"C:/Qt/4.8.7/plugins/"
@@ -40,7 +40,7 @@
                      #+osx-fink #p"/sw/lib/qt4-mac/plugins/")
         for resolved = (directory dir)
         when resolved
-        return (first resolved)))
+        collect resolved))
 
 (defmethod find-local-files ((system qt4))
   (append
@@ -66,7 +66,11 @@
       "QtXml"
       "QtXmlPatterns"
       "QtWebKit"
-      "phonon")
+      "phonon"
+      "qscintilla2"
+      "qimageblitz"
+      "qwt5"
+      "qwt-qt4")
     (find-qt-lib-directory)
     :key #+windows (lambda (path) (make-pathname :name (format NIL "~a4" (pathname-name path)) :defaults path))
          #-windows #'identity)
