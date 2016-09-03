@@ -27,7 +27,7 @@ Included in the precompiled packages for each platform are unless otherwise note
 * You can run both x86 and x86-64 versions of your implementation, but not both at the same time.
 * You do *not* need to install or download Qt itself. Qt-libs will download a precompiled version.
 * Drakma requires OpenSSL to download the archives. See <https://slproweb.com/products/Win32OpenSSL.html>. This is only required for the first-time setup. After that, drakma will not be loaded and you do not need to ship the SSL dlls for things to work.
-* QtTest is not available as it fails to build.
+* QtTest is not available as it fails to build and despite hours being spent on it I cannot figure out how to fix it.
 
 ### Linux
 
