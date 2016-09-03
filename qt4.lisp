@@ -13,7 +13,7 @@
     #+linux #p"/usr/lib/x86_64-linux-gnu/"
     #+linux #p"/usr/lib/*/"
     #+osx-ports #p"/opt/local/lib/"
-    #+osx-ports #p"/opt/local/libexec/qt4/lib"))
+    #+osx-ports #p"/opt/local/libexec/qt4/lib/"))
 
 (defclass qt4 (locally-available-library github-library checksummed-library)
   ()
