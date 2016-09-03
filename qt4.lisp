@@ -12,7 +12,8 @@
     #+linux #p"/usr/lib64/"
     #+linux #p"/usr/lib/x86_64-linux-gnu/"
     #+linux #p"/usr/lib/*/"
-    #+osx-ports #p"/opt/local/lib/"))
+    #+osx-ports #p"/opt/local/lib/"
+    #+osx-ports #p"/opt/local/libexec/qt4/lib"))
 
 (defclass qt4 (locally-available-library github-library checksummed-library)
   ()
@@ -76,9 +77,10 @@
     :key #+windows (lambda (path) (make-pathname :name (format NIL "~a4" (pathname-name path)) :defaults path))
          #-windows #'identity)
    (make-shared-library-files
-    '("qscintilla2"
+    '("qscintilla2*"
       "qimageblitz"
       "qwt5"
+      "qwt.5"
       "qwt-qt4")
     *generic-library-directories*)
    ;; These are additional libraries that are apparently provided by ports.
