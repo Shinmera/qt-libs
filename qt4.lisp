@@ -81,4 +81,4 @@
     #p"/opt/local/lib/")
    ;; Additional libraries that are stored in the Qt plugins folder.
    ;; The fun never ends. OH DEAR.
-   (list (find-qt-plugins-directory))))
+   (find-qt-plugins-directory)))
