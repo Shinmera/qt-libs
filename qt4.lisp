@@ -77,7 +77,7 @@
     :key #+windows (lambda (path) (make-pathname :name (format NIL "~a4" (pathname-name path)) :defaults path))
          #-windows #'identity)
    (make-shared-library-files
-    '("qscintilla2*"
+    '("qscintilla2"
       "qimageblitz"
       "qwt5"
       "qwt.5"
