@@ -4,61 +4,59 @@ Working with Qtools requires working with CommonQt. This in turn currently requi
 ## The Details
 There are two systems to be aware of: `qt-lib-generator` and `qt-libs`. The former is what's responsible for building and ensuring the external smoke libraries. The latter invokes the former if necessary, and stores the desired libraries in an easily accessible location, while also ensuring that CommonQt is tricked into using the proper paths when loading its libraries.
 
-In effect this means that if you are running a project that depends on CommonQt (`:qt`), you should instead depend on `:qt-libs`, which will try to make sure that everything concerning foreign libraries will go smoothly.
+In effect this means that if you are running a project that depends on CommonQt (`:qt`), you should instead depend on `:qt-libs`, which will try to make sure that everything concerning foreign libraries will go smoothly. By default it uses prebuilt binaries that come from relatively recent, but not too recent systems. This should hopefully mean that all the dependant versions will be available on most systems out there. If that is not the case, you can try to build your own versions to ship.
 
 In the future, CommonQt will use its own system to hook into Qt and drop Smoke support. When that time comes, this project will hopefully become obsolete. However, for the time being, Smoke is a necessary evil, and as such, this library hopes to make things a bit easier.
 
-The deed is done by providing a couple of ASDF extensions in the form of extra operations `download-op`, `generate-op`, and `install-op`, as well as extra system classes `build-system`, `make-build-system`, and `cmake-build-system`. Using these, systems for Qt4, smokegen, smokeqt, and libcommonqt are defined that will step through the downloading of source files, and the subsequent build and installation thereof. Do not worry, none of these will try to install anything to your system folders. No administration rights are required. Everything is stored in ASDF's cache folders.
+## Precompiled Packages
+Included in the precompiled packages for each platform are unless otherwise noted:
 
-The build system tries to invoke `make` with as many parallel jobs as supported. If this is for some reason not desired (eg running out of RAM), you can set `*max-cpus*` to a different value.
+* Qt 4.8.7
+* Qwt 5
+* QImageBlitz
+* QScintilla 2
+* Phonon
+* Smoke
+* SmokeQt
+* libcommonqt
 
-## What You Still Need
-While qt-libs provides the foreign libraries for Smoke and CommonQt, you still need certain system tools to actually run everything. What that is, depends heavily on your particular system.
-
+## Notes About the Platforms
 ### Windows
 
-* You will need a 64x Windows copy, version 7 or higher. Lower versions might work, but I will not test them.
-* You can run both 32x and 64x versions of your implementation, but not both at the same time.
+* You will need an x86-64 Windows copy, version 7 or higher. Lower versions might work, but I will not test them.
+* You can run both x86 and x86-64 versions of your implementation, but not both at the same time.
 * You do *not* need to install or download Qt itself. Qt-libs will download a precompiled version.
-* Drakma requires OpenSSL to download the archives. See <https://slproweb.com/products/Win32OpenSSL.html>.
-* Currently Windows 7, 8, and 10 have been tested and confirmed to work.
+* Drakma requires OpenSSL to download the archives. See <https://slproweb.com/products/Win32OpenSSL.html>. This is only required for the first-time setup. After that, drakma will not be loaded and you do not need to ship the SSL dlls for things to work.
+* QtTest is not available as it fails to build.
 
 ### Linux
 
-* You will need a 64x Linux setup.
-* You can run both 32x and 64x versions of your implementation, although precompiled versions only exist for 64x.
-* You will need to install Qt itself. Preferably version 4.8.7 . The following packages should suffice for this:
-  * Arch: `qt4` `base-devel`
-  * Debian & Ubuntu: `libqt4-dev` `gcc` `g++` `cmake`
-  * Fedora: `qt-devel` `gcc` `gcc-c++` `cmake`
-* If your implementation provides them, you may also use packages for the smokeqt libraries directly. Qt-libs *should* detect and use them instead of building from scratch.
-  * Arch: `AUR/kdebindings-smokeqt`
-  * Debian & Ubuntu: `libsmokeqt4-dev`
-  * Fedora: `smokeqt-devel`
+* You will need an x86-64 Linux setup.
+* You can run both x86 and x86-64 versions of your implementation, although precompiled versions only exist for x86-64.
+* If you want to build the binaries yourself, you will need to install Qt. Preferably version 4.8.7 . The following packages should suffice for this:
+  * Arch: `base-devel qt4 qwt qwt5 qimageblitz qscintilla-qt4 phonon-qt4`
+  * Debian & Ubuntu: `gcc g++ cmake libqt4-dev libqwt5-qt4-dev libqimageblitz-dev libqscintilla2-dev libphonon-dev`
 
 ### Mac OS X
 
-* You will need a 64x OS X setup, preferably Yosemite (10.10). Lower versions might work, but I will not test them.
-* You can run both 32x and 64x versions of your implementation, although precompiled versions only exist for 64x.
-* You will need to install Qt itself. Preferably version 4.8.7 .
+* You will need an x86-64 OS X setup, preferably Yosemite (10.10). Lower versions might work, but I will not test them.
+* You can run both x86 and x86-64 versions of your implementation, although precompiled versions only exist for x86-64.
+* If you want to build the binaries yourself, you will need to install Qt. Preferably version 4.8.7 . The following packages should suffice for this:
   * Xcode: Install its Command Line Tools
-  * MacPorts: `qt4-mac` `cmake`
+  * MacPorts: `cmake qt4-mac qwt qimageblitz qscintilla phonon`
+  * Homebrew: `cmake qt4 qscintilla2 qwt`
 
 ### Lisp
+The following implementations have been tested to work. Others may as well, but are not officially supported.
 
-* SBCL (1.2.12) and CCL (1.10) should work out of the box. Any other implementation and version is untested, but may work.
-* If things get stuck or fail for weird reasons, the solution is often to
-  1. Delete the `standalone` directory from the qt-libs system directory. See `qt-libs:*standalone-libs-dir*`.
-  2. Delete your FASL cache. Qt-libs abuses ASDF to build, so C++ sources and results are cached there as well.
+* SBCL (1.2.12+)
+* CCL (1.10+)
+* ECL (16.1.2+)
 
-## Stop All The Buildin'
-By default on linux and mac, qt-libs will rebuild the libraries from source. This can take a while, and is usually unnecessary if you didn't change anything about them. If you want it to stop building things anew when Quicklisp fetches you a new qt-libs, simply copy over the `standalone` folder from the old directory. Qt-libs will detect that the folder and its contents exist, avoiding rebuilding everything.
+## Cook It Up!
+On Linux and OS X you can automatically compile new versions of the libraries (except for Qt) if you need to. For Windows, see [this article](https://blog.tymoon.eu/article/323). In order to do this, follow these steps:
 
-If for some reason you cannot at all build the libraries, you can tell qt-libs to download them instead:
-
-    (ql:quickload :qt-lib-generator)
-    (dolist (sys '(:smokegen :smokeqt :libcommonqt))
-      (qt-lib-generator:install-system sys :source-type :compiled))
     (ql:quickload :qt-libs)
+    (qt-libs:ensure-standalone-libs :mode :install-sources :force T)
 
-This is already done on Windows by default, as building the libraries requires a working Visual Studio --as well as several days of potential frustration and agony-- something which I do not believe is feasible to demand of potential users. Another exclusivity to Windows is that it downloads the Qt libraries as well. This is because there are no official x64 libraries to download for that platform. On any other platform, they should be easily available though, making this divergence unnecessary.
+That should automatically download the necessary sources, copy the Qt binaries from your system, and compile the rest of the libraries.
