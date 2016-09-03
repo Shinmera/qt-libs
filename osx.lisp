@@ -11,9 +11,9 @@ Author: Nicolas Hafner <shinmera@tymoon.eu>
   ;; Yes you can have multiple ones at the same time, but
   ;; we only allow one to simplify the code everywhere.
   (setf *features* (remove-if (lambda (a) (find a '(:osx-ports :osx-brew :osx-fink))) *features*))
-  (pushnew (cond ((uiop:directory-exists-p #p"/opt/local/lib/") :osx-ports)
-                 ((uiop:directory-exists-p #p"/usr/local/Cellar/") :osx-brew)
-                 ((uiop:directory-exists-p #p"/sw/lib/") :osx-fink)
+  (pushnew (cond ((application-available-p "port") :osx-ports)
+                 ((application-available-p "brew") :osx-brew)
+                 ((application-available-p "fink") :osx-fink)
                  (T :osx-nopm)) *features*))
 
 #+osx-ports (status 0 "Detected MacPorts.")
