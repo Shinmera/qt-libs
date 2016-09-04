@@ -86,7 +86,7 @@
    ;; These are additional libraries that are apparently provided by ports.
    #+osx-ports
    (make-shared-library-files
-    '("z" "png" "ssl" "crypto" "dbus-1.3")
+    '("z" "png16" "ssl" "crypto" "dbus-1.3")
     #p"/opt/local/lib/")
    ;; Additional libraries that are stored in the Qt plugins folder.
    ;; The fun never ends. OH DEAR.
