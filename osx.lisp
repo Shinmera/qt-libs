@@ -48,14 +48,6 @@
 (defun dylib-set-dependency-name (pathname &rest pairs)
   (dylib-set-options pathname :dependencies pairs))
 
-;; Attempts to find a good match by a distance function.
-(defun find-similar (pathname files)
-  (cl-ppcre:register-groups-bind (NIL name) ("(lib)?([^.]*)" (file-name pathname))
-    (second (first (sort (loop for file in files
-                               when (search name (file-name file))
-                               collect (list (levenshtein-distance name (file-name file)) file))
-                         #'< :key #'first)))))
-
 (defun levenshtein-distance (a b)
   (cond ((= 0 (length a)) (length b))
         ((= 0 (length b)) (length a))
@@ -73,6 +65,14 @@
              (dotimes (j (length v0))
                (setf (aref v0 j) (aref v1 j))))))))
 
+;; Attempts to find a good match by a distance function.
+(defun find-similar (pathname files)
+  (cl-ppcre:register-groups-bind (NIL name) ("(lib)?([^.]*)" (file-name pathname))
+    (second (first (sort (loop for file in files
+                               when (search name (file-name file))
+                               collect (list (levenshtein-distance name (file-name file)) file))
+                         #'< :key #'first)))))
+
 (defun fix-dylib-paths (pathname &optional (replacements (uiop:directory-files pathname)))
   ;; Primitively change relative paths to use @loader-path and matching name in dir.
   (let ((files (remove "dylib" replacements :key #'pathname-type :test-not #'string=))
@@ -82,11 +82,10 @@
         (let* ((path (pathname dep))
                (new (when (or (uiop:relative-pathname-p path)
                               (find dep '("/opt/local/" "/usr/local/" "/sw/lib/") :test (lambda (a b) (search b a))))
-                      (let ((corresponding (find-similar path files)))
-                        (if corresponding
-                            (format NIL "@loader_path/~a" (uiop:native-namestring
-                                                           (relative-pathname pathname corresponding)))
-                            dep)))))
+                      (let ((corresponding (find-similar (uiop:resolve-symlinks path) files)))
+                        (when corresponding
+                          (format NIL "@loader_path/~a" (uiop:native-namestring
+                                                         (relative-pathname pathname corresponding))))))))
           (when new
             (status 0 "Replacing ~a's dependency ~s with ~s."
                     pathname dep new)
