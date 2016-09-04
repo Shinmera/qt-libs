@@ -51,14 +51,27 @@
 ;; Attempts to find a good match by a distance function.
 (defun find-similar (pathname files)
   (cl-ppcre:register-groups-bind (NIL name) ("(lib)?([^.]*)" (file-name pathname))
-    (cadar
-     (sort (loop for file in files
-                 for file-name = (file-name file)
-                 for position = (search name file-name)
-                 when position
-                 collect (list (+ position (- (length file-name) (length name)))
-                               file))
-           #'< :key #'first))))
+    (second (first (sort (loop for file in files
+                               when (search name (file-name file))
+                               collect (list (levenshtein-distance name (file-name file)) file))
+                         #'< :key #'first)))))
+
+(defun levenshtein-distance (a b)
+  (cond ((= 0 (length a)) (length b))
+        ((= 0 (length b)) (length a))
+        (T
+         (let ((v0 (make-array (1+ (length b))))
+               (v1 (make-array (1+ (length b)))))
+           (dotimes (i (length v0)) (setf (aref v0 i) i))
+           (dotimes (i (length a) (aref v1 (length b)))
+             (incf (aref v1 0))
+             (dotimes (j (length b))
+               (let ((cost (if (char= (char a i) (char b j)) 0 1)))
+                 (setf (aref v1 (1+ j)) (min (1+ (aref v1 j))
+                                             (1+ (aref v0 (1+ j)))
+                                             (+ cost (aref v0 j))))))
+             (dotimes (j (length v0))
+               (setf (aref v0 j) (aref v1 j))))))))
 
 (defun fix-dylib-paths (pathname &optional (replacements (uiop:directory-files pathname)))
   ;; Primitively change relative paths to use @loader-path and matching name in dir.
