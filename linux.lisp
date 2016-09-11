@@ -34,13 +34,12 @@
 (defun ldlib-set-dependency-name (pathname &rest pairs)
   (so-set-options pathname :dependencies pairs))
 
-(defun fix-ldlib-paths (pathname &optional (files (uiop:directory-files pathname)))
+(defun fix-ldlib-paths (pathname &optional (sonames (mapcar #'ldlib-soname (uiop:directory-files pathname))))
   (let ((dependencies ()))
     (dolist (dep (ldlib-dependencies pathname))
-      (let* ((path (pathname dep))
-             (new (let ((corresponding (find (determine-shared-library-name path) files :key #'determine-shared-library-name :test #'string-equal)))
-                    (when corresponding
-                      (format NIL "~a" (file-name corresponding))))))
+      (let ((new (let ((corresponding (find dep sonames :test #'string-equal)))
+                   (when (and corresponding (not (cl-ppcre:scan "^QT-LIBS" corresponding)))
+                     (file-name corresponding)))))
         (when new
           (status 0 "Replacing ~a's dependency ~s with ~s."
                   pathname dep new)
@@ -50,5 +49,6 @@
                                 :name (file-name pathname))))
 
 (defun fix-ldlib-collection (files)
-  (dolist (file files)
-    (fix-ldlib-paths file files)))
+  (let ((sonames (print (mapcar #'ldlib-soname files))))
+    (dolist (file files)
+      (fix-ldlib-paths file sonames))))

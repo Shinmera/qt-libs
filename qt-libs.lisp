@@ -104,7 +104,7 @@
         (name (or name (intern (string-upcase (pathname-name file)))))
         #+sbcl(sb-ext:*muffled-warnings* 'style-warning))
     (cffi::register-foreign-library
-     name `((T ,(file-name file)))
+     name `((T ,file))
      :search-path (pathname-utils:to-directory file))
     (unless (cffi:foreign-library-loaded-p name)
       (cffi:load-foreign-library name))))
@@ -117,6 +117,7 @@
     ;; Do the loading.
     (flet ((load-lib (name)
              (ensure-lib-loaded (shared-library-file :name name :defaults *standalone-libs-dir*))))
+      #+linux (load-lib "audio")
       (load-lib #-windows "QtCore" #+windows "QtCore4")
       (load-lib #-windows "QtGui" #+windows "QtGui4")
       (load-lib "smokebase")
