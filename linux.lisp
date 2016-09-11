@@ -45,7 +45,9 @@
           (status 0 "Replacing ~a's dependency ~s with ~s."
                   pathname dep new)
           (push (list dep new) dependencies))))
-    (ldlib-set-options pathname :dependencies dependencies :rpath ".")))
+    (ldlib-set-options pathname :dependencies dependencies
+                                :rpath "."
+                                :name (file-name pathname))))
 
 (defun fix-ldlib-collection (files)
   (dolist (file files)
