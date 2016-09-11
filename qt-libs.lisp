@@ -101,10 +101,11 @@
 
 (defun ensure-lib-loaded (file &optional name)
   (let ((file (merge-pathnames file *standalone-libs-dir*))
-        (name (or name (intern (string-upcase (pathname-name file))))))
+        (name (or name (intern (string-upcase (pathname-name file)))))
+        #+sbcl(sb-ext:*muffled-warnings* 'style-warning))
     (cffi::register-foreign-library
      name `((T ,(file-name file)))
-     :search-path (uiop:ensure-directory-pathname file))
+     :search-path (pathname-utils:to-directory file))
     (unless (cffi:foreign-library-loaded-p name)
       (cffi:load-foreign-library name))))
 
