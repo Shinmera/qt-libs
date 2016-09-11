@@ -16,6 +16,7 @@
   :components ((:file "package")
                (:file "toolkit")
                (:file "osx")
+               (:file "linux")
                (:file "build")
                (:file "qt4")
                (:file "smokegen")

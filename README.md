@@ -34,8 +34,8 @@ Included in the precompiled packages for each platform are unless otherwise note
 * You will need an x86-64 Linux setup.
 * You can run both x86 and x86-64 versions of your implementation, although precompiled versions only exist for x86-64.
 * If you want to build the binaries yourself, you will need to install Qt. Preferably version 4.8.7 . The following packages should suffice for this:
-  * Arch: `base-devel qt4 qwt qwt5 qimageblitz qscintilla-qt4 phonon-qt4`
-  * Debian & Ubuntu: `gcc g++ cmake libqt4-dev libqwt5-qt4-dev libqimageblitz-dev libqscintilla2-dev libphonon-dev`
+  * Arch: `base-devel qt4 qwt qwt5 qimageblitz qscintilla-qt4 phonon-qt4 patchelf`
+  * Debian & Ubuntu: `gcc g++ cmake libqt4-dev libqwt5-qt4-dev libqimageblitz-dev libqscintilla2-dev libphonon-dev patchelf`
 
 ### Mac OS X
 

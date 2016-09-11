@@ -41,6 +41,14 @@
    #:libcommonqt
    #:smokeqt
    #:fix-commonqt-pro-file)
+  ;; linux.lisp
+  (:export
+   #:patchelf
+   #:ldlib-dependencies
+   #:ldlib-set-options
+   #:ldlib-set-dependency-name
+   #:fix-ldlib-paths
+   #:fix-ldlib-collection)
   ;; osx
   (:export
    #:dylib-dependencies
