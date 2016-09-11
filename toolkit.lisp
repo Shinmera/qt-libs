@@ -50,7 +50,7 @@
   (min (or (parse-integer (uiop:run-program "nproc" :ignore-error-status T :output :string) :junk-allowed T)
            2)
        *max-cpus*))
-
+ 
 (defun check-file-exists (file)
   (unless (probe-file file)
     (error "The file is required but does not exist:~%  ~s" file)))
