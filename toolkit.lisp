@@ -21,9 +21,11 @@
           (apply #'format NIL string format-args)))
 
 (defun run-here (string &rest format-args)
+  (ensure-system :simple-inferiors)
   (let ((program (apply #'format NIL string (mapcar #'externalize format-args))))
     (status 1 "Running ~a" program)
-    (let ((status (nth-value 2 (uiop:run-program program :output T :error-output T :ignore-error-status T))))
+    (let ((status #+unix (funcall (find-symbol (string :run) :simple-inferiors) "bash" (list "-c" program) :output T :error T)
+                  #+windows (error "RUN-HERE won't run on this OS. I don't think you should be hitting this anyway.")))
       (unless (= 0 status)
         (error "Running the external program~%  ~a~%failed with return code ~a."
                program status)))))
