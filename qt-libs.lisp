@@ -50,7 +50,7 @@
       (ensure-installed "smokebase" 'smokegen)
       (ensure-installed "smokeqtcore" 'smokeqt)
       (ensure-installed "commonqt" 'libcommonqt))
-    (when dirty
+    (when (and dirty (eql method :install-sources))
       #+darwin (fix-dylib-collection (uiop:directory-files standalone-dir (make-pathname :type "dylib" :defaults uiop:*wild-path*)))
       #+linux (fix-ldlib-collection (uiop:directory-files standalone-dir (make-pathname :type "so" :defaults uiop:*wild-path*)))
       #+windows T))
