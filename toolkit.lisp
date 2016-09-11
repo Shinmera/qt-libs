@@ -113,7 +113,7 @@
                      collect file)))
 
 (defun determine-shared-library-type (pathname)
-  (cond ((search ".so." (pathname-name pathname))
+  (cond ((cl-ppcre:scan "\\.so(\\.|$)" (pathname-name pathname))
          "so")
         (T (or (pathname-type pathname)
                #+darwin "dylib"
@@ -121,8 +121,8 @@
                #+windows "dll"))))
 
 (defun determine-shared-library-name (pathname)
-  (cond ((search ".so." (pathname-name pathname))
-         (subseq (pathname-name pathname) 0 (search ".so." (pathname-name pathname))))
+  (cond ((cl-ppcre:scan "\\.so(\\.|$)" (pathname-name pathname))
+         (subseq (pathname-name pathname) 0 (cl-ppcre:scan "\\.so(\\.|$)" (pathname-name pathname))))
         (T
          (or (cl-ppcre:register-groups-bind (name) ("^(.+)\\.\\d\\.\\d\\.\\d$" (pathname-name pathname)) name)
              (cl-ppcre:register-groups-bind (NIL name) ("^(lib)?(.+)$" (pathname-name pathname))
