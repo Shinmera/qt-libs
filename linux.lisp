@@ -38,11 +38,14 @@
 (defun ldlib-set-dependency-name (pathname &rest pairs)
   (so-set-options pathname :dependencies pairs))
 
-(defun fix-ldlib-paths (pathname &optional (sonames (mapcar #'ldlib-soname (uiop:directory-files pathname))))
+(defun soname-assoc-list (files)
+  (mapcar (lambda (a) (cons a (ldlib-soname a))) files))
+
+(defun fix-ldlib-paths (pathname &optional (sonames (soname-assoc-list (uiop:directory-files pathname))))
   (let ((dependencies ()))
     (dolist (dep (ldlib-dependencies pathname))
-      (let ((new (let ((corresponding (find dep sonames :test #'string-equal)))
-                   (when (and corresponding (not (cl-ppcre:scan "^QT-LIBS" corresponding)))
+      (let ((new (let ((corresponding (car (find dep sonames :key #'cdr :test #'string-equal))))
+                   (when corresponding
                      (file-name corresponding)))))
         (when new
           (status 0 "Replacing ~a's dependency ~s with ~s."
@@ -53,6 +56,6 @@
                                 :name (file-name pathname))))
 
 (defun fix-ldlib-collection (files)
-  (let ((sonames (print (mapcar #'ldlib-soname files))))
+  (let ((sonames (soname-assoc-list files)))
     (dolist (file files)
       (fix-ldlib-paths file sonames))))
