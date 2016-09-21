@@ -45,6 +45,7 @@
      "smokeqtopengl"
      "smokeqtscript"
      "smokeqtsql"
+     "smokeqtsvg"
      "smokeqttest"
      "smokeqtuitools"
      "smokeqtwebkit"
