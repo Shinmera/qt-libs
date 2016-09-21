@@ -13,6 +13,10 @@
   (with-chdir (pathname)
     (cl-ppcre:split "\\n" (patchelf pathname "--print-needed"))))
 
+(defun ldlib-soname (pathname)
+  (with-chdir (pathname)
+    (first (cl-ppcre:split "\\n" (patchelf pathname "--print-soname")))))
+
 (defun ldlib-set-options (pathname &key name dependencies rpath interpreter)
   (with-chdir (pathname)
     (when name

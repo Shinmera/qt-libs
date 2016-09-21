@@ -45,6 +45,7 @@
   (:export
    #:patchelf
    #:ldlib-dependencies
+   #:ldlib-soname
    #:ldlib-set-options
    #:ldlib-set-dependency-name
    #:fix-ldlib-paths
