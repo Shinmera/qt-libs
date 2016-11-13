@@ -57,6 +57,6 @@ The following implementations have been tested to work. Others may as well, but 
 On Linux and OS X you can automatically compile new versions of the libraries (except for Qt) if you need to. For Windows, see [this article](https://blog.tymoon.eu/article/323). In order to do this, follow these steps:
 
     (ql:quickload :qt-libs)
-    (qt-libs:ensure-standalone-libs :mode :install-sources :force T)
+    (qt-libs:ensure-standalone-libs :method :install-sources :force T)
 
 That should automatically download the necessary sources, copy the Qt binaries from your system, and compile the rest of the libraries.
