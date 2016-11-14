@@ -38,10 +38,10 @@
     (let ((output (make-pathname :name (pathname-name file)
                                  :type (pathname-type file)
                                  :defaults to)))
-      (cond ((pathname-utils:directory-p file)
+      (cond ((directory-p file)
              (copy-directory-tree
               file
-              (pathname-utils:subdirectory to (pathname-utils:directory-name file))
+              (subdirectory to (directory-name file))
               :force force))
             ((or force (not (uiop:file-exists-p output)))
              (ensure-directories-exist output)
@@ -56,8 +56,8 @@
     (if (uiop:directory-pathname-p input)
         ;; KLUDGE: Special handling for the Qt plugins.
         (if (find "plugins" (pathname-directory input) :test #'string=)
-            (copy-directory-tree input to :force force)
-            (copy-libs input (subdirectory to (car (last (pathname-directory input)))) :test test :force force))
+            (copy-directory-tree input (subdirectory to (directory-name input)) :force force)
+            (copy-libs input (subdirectory to (directory-name input)) :test test :force force))
         (when (funcall test input)
           (let ((output (installed-library-file (determine-shared-library-name input) to)))
             (when (or force (not (uiop:file-exists-p output)))
@@ -134,7 +134,7 @@
         #+sbcl(sb-ext:*muffled-warnings* 'style-warning))
     (cffi::register-foreign-library
      name `((T ,file))
-     :search-path (pathname-utils:to-directory file))
+     :search-path (to-directory file))
     (unless (cffi:foreign-library-loaded-p name)
       (cffi:load-foreign-library name))))
 
