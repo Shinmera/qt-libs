@@ -44,7 +44,8 @@
 (defun fix-ldlib-paths (pathname &optional (sonames (soname-assoc-list (uiop:directory-files pathname))))
   (let ((dependencies ()))
     (dolist (dep (ldlib-dependencies pathname))
-      (let ((new (let ((corresponding (car (find dep sonames :key #'cdr :test #'string-equal))))
+      (let ((new (let ((corresponding (car (find (determine-shared-library-name dep)
+                                                 sonames :key #'cdr :test #'string-equal))))
                    (when corresponding
                      (file-name corresponding)))))
         (when new
