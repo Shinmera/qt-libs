@@ -7,13 +7,13 @@
 (in-package #:org.shirakumo.qtools.libs.generator)
 
 (defvar *generic-library-directories*
-  '(#+linux #p"/usr/lib/"
-    #+linux #p"/usr/local/lib/"
+  '(#+linux #p"/usr/local/lib/"
     #+linux #p"/usr/lib64/"
     #+linux #p"/usr/lib/x86_64-linux-gnu/"
     #+linux #p"/usr/lib/*/"
-    #+osx-ports #p"/opt/local/lib/"
-    #+osx-ports #p"/opt/local/libexec/qt4/lib/"))
+    #+linux #p"/usr/lib/"
+    #+osx-ports #p"/opt/local/libexec/qt4/lib/"
+    #+osx-ports #p"/opt/local/lib/"))
 
 (defclass qt4 (locally-available-library github-library checksummed-library)
   ()
@@ -25,20 +25,22 @@
         thereis (directory file)))
 
 (defun find-qt-lib-directory ()
-  (loop for dir in (append *generic-library-directories*
-                           '(#+windows #p"C:/Qt/4.8.7/bin/"
+  (loop for dir in (append '(#+windows #p"C:/Qt/4.8.7/bin/"
+                             #+linux #p"/usr/local/Trolltech/Qt-4.8.7/lib/"
                              #+linux #p"/usr/lib64/qt48/"
                              #+osx-ports #p"/opt/local/libexec/qt4/lib/"
                              #+osx-brew #p"/usr/local/Cellar/qt/4.8.7*/lib/*.framework/"
-                             #+osx-fink #p"/sw/lib/qt4-mac/lib/*.framework/"))
+                             #+osx-fink #p"/sw/lib/qt4-mac/lib/*.framework/")
+                           *generic-library-directories*)
         when (qt4-on-path-p dir)
         collect dir))
 
 (defun find-qt-plugins-directory ()
   (loop for dir in '(#+windows #p"C:/Qt/4.8.7/plugins/"
-                     #+linux #p"/usr/lib/qt4/plugins/"
+                     #+linux #p"/usr/local/Trolltech/Qt-4.8.7/plugins/"
                      #+linux #p"/usr/local/lib/qt4/plugins/"
                      #+linux #p"/usr/lib/x86_64*/qt4/plugins/"
+                     #+linux #p"/usr/lib/qt4/plugins/"
                      #+linux #p"/usr/lib/*/qt4/plugins/"
                      #+osx-ports #p"/opt/local/share/qt4/plugins/"
                      #+osx-ports #p"/opt/local/libexec/qt4/share/plugins/"
@@ -82,7 +84,9 @@
       "qwt5"
       "qwt.5"
       "qwt-qt4")
-    *generic-library-directories*)
+    (append '(#+linux #p"/usr/local/qwt-5.2.4-svn/lib/"
+              #+linux #p"/usr/local/Trolltech/Qt-4.8.7/lib/")
+            *generic-library-directories*))
    ;; These are additional libraries that are apparently provided by ports.
    #+osx-ports
    (make-shared-library-files
