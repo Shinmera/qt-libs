@@ -85,7 +85,7 @@
       "qwt.5"
       "qwt5"
       "qwt")
-    (append '(#+linux #p"/usr/local/qwt-5.2.4-svn/lib/"
+    (append '(#+linux #p"/usr/local/qwt/lib/"
               #+linux #p"/usr/local/Trolltech/Qt-4.8.7/lib/")
             *generic-library-directories*))
    ;; These are additional libraries that are apparently provided by ports.
