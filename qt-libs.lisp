@@ -22,17 +22,39 @@
 
 (defvar *standalone-libs-dir* (asdf:system-relative-pathname :qt-libs "standalone" :type :directory))
 
+(defun installed-library-file (name &optional (defaults *standalone-libs-dir*))
+  (make-pathname :name #-linux name #+linux (format NIL "qtlibs!~a" name)
+                 :type #+windows "dll" #+darwin "dylib" #+linux "so"
+                 :defaults defaults))
+
+(defun copy-directory-tree (from to &key force)
+  (dolist (file (append (uiop:directory-files from)
+                        (uiop:subdirectories from)) to)
+    (let ((output (make-pathname :name (pathname-name file)
+                                 :type (pathname-type file)
+                                 :defaults to)))
+      (cond ((pathname-utils:directory-p file)
+             (copy-directory-tree
+              file
+              (pathname-utils:subdirectory to (pathname-utils:directory-name file))
+              :force force))
+            ((or force (not (uiop:file-exists-p output)))
+             (ensure-directories-exist output)
+             (status 1 "Copying ~s to ~s" (uiop:native-namestring file) (uiop:native-namestring output))
+             (copy-file file output))))))
+
 (defun copy-libs (from to &key (test (constantly T)) force)
   (dolist (input (etypecase from
                    (list from)
                    (pathname (append (uiop:directory-files from)
                                      (uiop:subdirectories from)))))
     (if (uiop:directory-pathname-p input)
-        (copy-libs input (subdirectory to (car (last (pathname-directory input)))) :test test :force force)
+        ;; KLUDGE: Special handling for the Qt plugins.
+        (if (find "plugins" (pathname-directory input) :test #'string=)
+            (copy-directory-tree input to :force force)
+            (copy-libs input (subdirectory to (car (last (pathname-directory input)))) :test test :force force))
         (when (funcall test input)
-          (let ((output (make-pathname :defaults to
-                                       :type (determine-shared-library-type input)
-                                       :name (determine-shared-library-name input))))
+          (let ((output (installed-library-file (determine-shared-library-name input) to)))
             (when (or force (not (uiop:file-exists-p output)))
               (ensure-directories-exist output)
               (status 1 "Copying ~s to ~s" (uiop:native-namestring input) (uiop:native-namestring output))
@@ -100,7 +122,9 @@
   (setf (fdefinition original) (original-func original)))
 
 (defun ensure-lib-loaded (file &optional name)
-  (let ((file (merge-pathnames file *standalone-libs-dir*))
+  (let ((file (etypecase file
+                (pathname file)
+                (string (installed-library-file file))))
         (name (or name (intern (string-upcase (pathname-name file)))))
         #+sbcl(sb-ext:*muffled-warnings* 'style-warning))
     (cffi::register-foreign-library
@@ -115,15 +139,13 @@
     ;; See QT::LOAD-LIBCOMMONQT for an explanation of this.
     #+(and sbcl (not windows)) (sb-sys:enable-interrupt sb-unix:sigchld :default)
     ;; Do the loading.
-    (flet ((load-lib (name)
-             (ensure-lib-loaded (shared-library-file :name name :defaults *standalone-libs-dir*))))
-      #+linux (load-lib "audio")
-      (load-lib #-windows "QtCore" #+windows "QtCore4")
-      (load-lib #-windows "QtGui" #+windows "QtGui4")
-      (load-lib "smokebase")
-      (load-lib "smokeqtcore")
-      (load-lib "smokeqtgui")
-      (load-lib "commonqt"))
+    #+linux (ensure-lib-loaded "audio")
+    (ensure-lib-loaded #-windows "QtCore" #+windows "QtCore4")
+    (ensure-lib-loaded #-windows "QtGui" #+windows "QtGui4")
+    (ensure-lib-loaded "smokebase")
+    (ensure-lib-loaded "smokeqtcore")
+    (ensure-lib-loaded "smokeqtgui")
+    (ensure-lib-loaded "commonqt")
     (when (find-package :qt) (setf (symbol-value (find-symbol (string '*LIBRARY-LOADED-P*) :QT)) T))
     (setf *libs-loaded* T)))
 
@@ -151,9 +173,7 @@
       (let ((idx (qtvar *n-modules*)))
         (unless (< idx (length (qtvar *module-table*)))
           (error "Sorry, +module-bits+ exceeded"))
-        (ensure-lib-loaded (shared-library-file
-                            :name (format NIL "smoke~a" name)
-                            :defaults *standalone-libs-dir*))
+        (ensure-lib-loaded (format NIL "smoke~a" name))
         (let ((init (cffi:foreign-symbol-pointer
                      (format nil "init_~A_Smoke" name))))
           (assert init)
