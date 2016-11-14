@@ -81,9 +81,10 @@
    (make-shared-library-files
     '("qscintilla2"
       "qimageblitz"
-      "qwt5"
+      "qwt-qt4"
       "qwt.5"
-      "qwt-qt4")
+      "qwt5"
+      "qwt")
     (append '(#+linux #p"/usr/local/qwt-5.2.4-svn/lib/"
               #+linux #p"/usr/local/Trolltech/Qt-4.8.7/lib/")
             *generic-library-directories*))
