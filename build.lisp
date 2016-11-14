@@ -33,6 +33,8 @@
         (status 0 "Running stage ~a for ~a" stage library)
         (call-next-method)
         library)
+    (continue ()
+      :report (lambda (s) (format s "Abort the stage ~s ~s and continue" stage library)))
     (retry ()
       :report (lambda (s) (format s "Retry stage ~s ~s" stage library))
       (apply #'stage stage library args))))
