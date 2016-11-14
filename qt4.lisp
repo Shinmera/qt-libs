@@ -15,6 +15,30 @@
     #+osx-ports #p"/opt/local/libexec/qt4/lib/"
     #+osx-ports #p"/opt/local/lib/"))
 
+(defvar *qt-module-list*
+  '("Qt3Support"
+    "QtCLucene"
+    "QtCore"
+    "QtDBus"
+    "QtDeclarative"
+    "QtDesigner"
+    "QtDesignerComponents"
+    "QtGui"
+    "QtHelp"
+    "QtMultimedia"
+    "QtNetwork"
+    "QtOpenGL"
+    "QtScript"
+    "QtScriptTools"
+    "QtSql"
+    "QtSvg"
+    "QtTest"
+    "QtUiTools"
+    "QtXml"
+    "QtXmlPatterns"
+    "QtWebKit"
+    "phonon"))
+
 (defclass qt4 (locally-available-library github-library checksummed-library)
   ()
   (:default-initargs :tag "qt-libs2.0.0"))
@@ -53,28 +77,7 @@
 (defmethod find-local-files ((system qt4))
   (append
    (make-shared-library-files
-    '("Qt3Support"
-      "QtCLucene"
-      "QtCore"
-      "QtDBus"
-      "QtDeclarative"
-      "QtDesigner"
-      "QtDesignerComponents"
-      "QtGui"
-      "QtHelp"
-      "QtMultimedia"
-      "QtNetwork"
-      "QtOpenGL"
-      "QtScript"
-      "QtScriptTools"
-      "QtSql"
-      "QtSvg"
-      "QtTest"
-      "QtUiTools"
-      "QtXml"
-      "QtXmlPatterns"
-      "QtWebKit"
-      "phonon")
+    *qt-modules-list*
     (find-qt-lib-directory)
     :key #+windows (lambda (path) (make-pathname :name (format NIL "~a4" (pathname-name path)) :defaults path))
          #-windows #'identity)

@@ -28,7 +28,10 @@
       name))
 
 (defun installed-library-file (name &optional (defaults *standalone-libs-dir*))
-  (make-pathname :name #-linux name #+linux (format NIL "qtlibs!~a" (normalize-library-name name))
+  (make-pathname :name #+unix (format NIL "qtlibs!~a" (normalize-library-name name))
+                       #+windows (if (find name qt-lib-generator::*qt-module-list* :test #'string-equal)
+                                     (format NIL "~a4" name)
+                                     name)
                  :type #+windows "dll" #+darwin "dylib" #+linux "so"
                  :defaults defaults))
 
