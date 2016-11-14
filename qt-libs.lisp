@@ -22,8 +22,13 @@
 
 (defvar *standalone-libs-dir* (asdf:system-relative-pathname :qt-libs "standalone" :type :directory))
 
+(defun normalize-library-name (name)
+  (if (and (< 3 (length name)) (string= "lib" name :end2 3))
+      (subseq name 3)
+      name))
+
 (defun installed-library-file (name &optional (defaults *standalone-libs-dir*))
-  (make-pathname :name #-linux name #+linux (format NIL "qtlibs!~a" name)
+  (make-pathname :name #-linux name #+linux (format NIL "qtlibs!~a" (normalize-library-name name))
                  :type #+windows "dll" #+darwin "dylib" #+linux "so"
                  :defaults defaults))
 
