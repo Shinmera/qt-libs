@@ -63,7 +63,7 @@
 (defun ensure-standalone-libs (&key (method :install-binaries) force (standalone-dir *standalone-libs-dir*))
   (let ((dirty force))
     (flet ((ensure-installed (so system)
-             (when (or force (and (not (uiop:file-exists-p (shared-library-file :name so :defaults standalone-dir)))))
+             (when (or force (and (not (uiop:file-exists-p (installed-library-file so standalone-dir)))))
                (let ((system (make-instance system)))
                  (when method (stage method system :force force))
                  (copy-libs (output-files system) standalone-dir :force force)
