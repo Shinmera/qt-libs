@@ -144,7 +144,6 @@
     ;; See QT::LOAD-LIBCOMMONQT for an explanation of this.
     #+(and sbcl (not windows)) (sb-sys:enable-interrupt sb-unix:sigchld :default)
     ;; Do the loading.
-    #+linux (ensure-lib-loaded "audio")
     (ensure-lib-loaded #-windows "QtCore" #+windows "QtCore4")
     (ensure-lib-loaded #-windows "QtGui" #+windows "QtGui4")
     (ensure-lib-loaded "smokebase")
