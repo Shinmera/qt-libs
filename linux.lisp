@@ -45,7 +45,7 @@
   (let ((dependencies ()))
     (dolist (dep (ldlib-dependencies pathname))
       (let ((new (let ((corresponding (car (find (determine-shared-library-name dep)
-                                                 sonames :key (lambda (a) (determine-shared-library-name (cdr a)))
+                                                 sonames :key (lambda (a) (when (cdr a) (determine-shared-library-name (cdr a))))
                                                          :test #'string-equal))))
                    (when corresponding
                      (file-name corresponding)))))
