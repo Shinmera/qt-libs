@@ -30,27 +30,6 @@
       (set-path ld-orig ldvar))))
 
 (defmethod output-files ((library smokeqt))
-  (make-shared-library-files
-   '("smokephonon"
-     "smokeqimageblitz"
-     "smokeqsci"
-     "smokeqt3support"
-     "smokeqtcore"
-     "smokeqtdbus"
-     "smokeqtdeclarative"
-     "smokeqtgui"
-     "smokeqthelp"
-     "smokeqtmultimedia"
-     "smokeqtnetwork"
-     "smokeqtopengl"
-     "smokeqtscript"
-     "smokeqtsql"
-     "smokeqtsvg"
-     "smokeqttest"
-     "smokeqtuitools"
-     "smokeqtwebkit"
-     "smokeqtxmlpatterns"
-     "smokeqtxml"
-     "smokeqwt")
-   (list (install-directory library)
-         (subdirectory (install-directory library) "lib"))))
+  (if (probe-file (subdirectory (install-directory library) "lib"))
+      (uiop:directory* (merge-pathnames uiop:*wild-file* (subdirectory (install-directory library) "lib")))
+      (uiop:directory* (merge-pathnames uiop:*wild-file* (install-directory library)))))

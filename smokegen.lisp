@@ -24,7 +24,6 @@
    "libcppparser.dylib" "@executable_path/../lib/libcppparser.dylib"))
 
 (defmethod output-files ((library smokegen))
-  (make-shared-library-files
-   '("smokebase")
-   (list (install-directory library)
-         (subdirectory (install-directory library) "lib"))))
+  (if (probe-file (subdirectory (install-directory library) "lib"))
+      (uiop:directory* (merge-pathnames uiop:*wild-file* (subdirectory (install-directory library) "lib")))
+      (uiop:directory* (merge-pathnames uiop:*wild-file* (install-directory library)))))
