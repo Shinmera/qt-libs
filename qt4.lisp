@@ -77,7 +77,7 @@
 (defmethod find-local-files ((system qt4))
   (append
    (make-shared-library-files
-    *qt-modules-list*
+    *qt-module-list*
     (find-qt-lib-directory)
     :key #+windows (lambda (path) (make-pathname :name (format NIL "~a4" (pathname-name path)) :defaults path))
          #-windows #'identity)
