@@ -8,7 +8,7 @@
 
 (defclass libcommonqt (make-build-library github-library checksummed-library)
   ((smokeqt :initarg :smokeqt :initform (make-instance 'smokeqt) :accessor smokeqt))
-  (:default-initargs :tag "qt-libs2.0.0"))
+  (:default-initargs :tag "qt-libs2.0.1"))
 
 (defun fix-commonqt-pro-file (file &rest basepaths)
   (let ((contents (uiop:read-file-string file)))

@@ -41,7 +41,7 @@
 
 (defclass qt4 (locally-available-library github-library checksummed-library)
   ()
-  (:default-initargs :tag "qt-libs2.0.0"))
+  (:default-initargs :tag "qt-libs2.0.1"))
 
 (defun qt4-on-path-p (path)
   (loop for file in (list (shared-library-file :name #+unix "QtCore" #+windows "QtCore4" :defaults path)

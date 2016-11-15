@@ -8,7 +8,7 @@
 
 (defclass smokegen (cmake-build-library github-library checksummed-library)
   ()
-  (:default-initargs :tag "qt-libs2.0.0"))
+  (:default-initargs :tag "qt-libs2.0.1"))
 
 (defmethod cmake-flags ((library smokegen))
   (list* "-DCMAKE_BUILD_TYPE=Release"
