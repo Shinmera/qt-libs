@@ -80,7 +80,8 @@
     *qt-module-list*
     (find-qt-lib-directory)
     :key #+windows (lambda (path) (make-pathname :name (format NIL "~a4" (pathname-name path)) :defaults path))
-         #-windows #'identity)
+         #+darwin (lambda (path) (make-pathname :type :wild :defaults path))
+         #+linux #'identity)
    (make-shared-library-files
     '("qscintilla2"
       "qimageblitz"
