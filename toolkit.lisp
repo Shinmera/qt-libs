@@ -158,7 +158,7 @@
 
 (defun extract-archive (from to &key (strip-folder))
   (ensure-system :zip)
-  (funcall (find-symbol (string :unzip) :zip) from to)
+  (funcall (find-symbol (string :unzip) :zip) from to :if-exists :supersede)
   (when strip-folder
     (let ((sub (first (uiop:subdirectories to))))
       (dolist (file (append (uiop:directory-files sub) (uiop:subdirectories sub)))
