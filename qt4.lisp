@@ -13,7 +13,8 @@
     #+linux #p"/usr/lib/*/"
     #+linux #p"/usr/lib/"
     #+osx-ports #p"/opt/local/libexec/qt4/lib/"
-    #+osx-ports #p"/opt/local/lib/"))
+    #+osx-ports #p"/opt/local/lib/"
+    #+osx-brew #p"/usr/local/Cellar/*/*/lib/"))
 
 (defvar *qt-module-list*
   '("Qt3Support"
@@ -53,7 +54,7 @@
                              #+linux #p"/usr/local/Trolltech/Qt-4.8.7/lib/"
                              #+linux #p"/usr/lib64/qt48/"
                              #+osx-ports #p"/opt/local/libexec/qt4/lib/"
-                             #+osx-brew #p"/usr/local/Cellar/qt/4.8.7*/lib/*.framework/"
+                             #+osx-brew #p"/usr/local/Cellar/qt/*/lib/*.framework/"
                              #+osx-fink #p"/sw/lib/qt4-mac/lib/*.framework/")
                            *generic-library-directories*)
         when (qt4-on-path-p dir)
@@ -68,7 +69,7 @@
                      #+linux #p"/usr/lib/*/qt4/plugins/"
                      #+osx-ports #p"/opt/local/share/qt4/plugins/"
                      #+osx-ports #p"/opt/local/libexec/qt4/share/plugins/"
-                     #+osx-brew #p"/usr/local/Cellar/qt/4.8.7/plugins/"
+                     #+osx-brew #p"/usr/local/Cellar/qt/*/plugins/"
                      #+osx-fink #p"/sw/lib/qt4-mac/plugins/")
         for resolved = (directory dir)
         when resolved
@@ -80,7 +81,7 @@
     *qt-module-list*
     (find-qt-lib-directory)
     :key #+windows (lambda (path) (make-pathname :name (format NIL "~a4" (pathname-name path)) :defaults path))
-         #+darwin (lambda (path) (make-pathname :type :wild :defaults path))
+         #+osx-brew (lambda (path) (make-pathname :name (subseq (pathname-name path) 3) :type :wild :defaults path))
          #+linux #'identity)
    (make-shared-library-files
     '("qscintilla2"
@@ -90,7 +91,9 @@
       "qwt5"
       "qwt")
     (append '(#+linux #p"/usr/local/qwt/lib/"
-              #+linux #p"/usr/local/Trolltech/Qt-4.8.7/lib/")
+              #+linux #p"/usr/local/Trolltech/Qt-4.8.7/lib/"
+              #+osx-brew #p"/usr/local/Cellar/qwt/*/lib/qwt.framework/"
+              #+osx-brew #p"/usr/local/Cellar/qscintilla2/*/lib/")
             *generic-library-directories*))
    ;; These are additional libraries that are apparently provided by ports.
    #+osx-ports
