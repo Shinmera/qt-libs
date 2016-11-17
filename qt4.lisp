@@ -83,7 +83,7 @@
             (find-qt-lib-directory))
     :key #+windows (lambda (path) (make-pathname :name (format NIL "~a4" (pathname-name path)) :defaults path))
          #+osx-brew (lambda (path) (make-pathname :name (subseq (pathname-name path) 3) :type :wild :defaults path))
-         #+linux #'identity)
+         #-(or windows osx-brew) #'identity)
    (make-shared-library-files
     '("qscintilla2"
       "qimageblitz"
