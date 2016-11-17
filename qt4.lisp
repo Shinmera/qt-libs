@@ -79,7 +79,7 @@
   (append
    (make-shared-library-files
     *qt-module-list*
-    (append '(#+osx-ports #p"/opt/local/lib")
+    (append '(#+osx-ports #p"/opt/local/lib/")
             (find-qt-lib-directory))
     :key #+windows (lambda (path) (make-pathname :name (format NIL "~a4" (pathname-name path)) :defaults path))
          #+osx-brew (lambda (path) (make-pathname :name (subseq (pathname-name path) 3) :type :wild :defaults path))
