@@ -17,10 +17,10 @@
          (format NIL "-DSmoke_DIR=~a" (externalize (subdirectory (install-directory (smokegen library)) "share" "smoke" "cmake")))
          (call-next-method)))
 
-(defmethod stage :before ((stage (eql :prepare-sources)) (library smokeqt) &key)
+(defmethod stage :before ((stage (eql :prepare-sources)) (library smokeqt) &key &allow-other-keys)
   (stage :install-sources (smokegen library)))
 
-(defmethod stage :around ((stage (eql :compile-sources)) (library smokeqt) &key)
+(defmethod stage :around ((stage (eql :compile-sources)) (library smokeqt) &key &allow-other-keys)
   (let* ((libdirs (subdirectory (install-directory (smokegen library)) "lib"))
          (ldvar #+linux "LD_LIBRARY_PATH" #+darwin "DYLD_LIBRARY_PATH" #+windows "PATH")
          (ld-orig (get-path ldvar)))

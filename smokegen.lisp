@@ -16,7 +16,7 @@
          (format NIL "-DCMAKE_INSTALL_PREFIX=~a" (externalize (install-directory library)))
          (call-next-method)))
 
-(defmethod stage :after ((stage (eql :install-sources)) (library smokegen) &key)
+(defmethod stage :after ((stage (eql :install-sources)) (library smokegen) &key &allow-other-keys)
   #+darwin
   ;; OS X El Capitan breaks DYLD_LIBRARY_PATH, so we need to fix the binary up.
   (dylib-set-dependency-name

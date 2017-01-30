@@ -25,7 +25,7 @@
         (format stream "~&~a" contents))
       file)))
 
-(defmethod stage ((stage (eql :prepare-sources)) (library libcommonqt) &key)
+(defmethod stage ((stage (eql :prepare-sources)) (library libcommonqt) &key &allow-other-keys)
   (check-prerequisite "Qt4.8" "qmake-qt4" "qmake")
   (stage :install-sources (smokeqt library))
   (call-next-method)
@@ -38,6 +38,6 @@
               (externalize project-file)
               (externalize (merge-pathnames (make-file library) (build-directory library))))))
 
-(defmethod stage ((stage (eql :install-sources)) (library libcommonqt) &key)
+(defmethod stage ((stage (eql :install-sources)) (library libcommonqt) &key &allow-other-keys)
   (copy-file (shared-library-file :name "commonqt" :defaults (build-directory library))
              (install-directory library)))
