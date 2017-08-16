@@ -4,7 +4,6 @@
  Author: Nicolas Hafner <shinmera@tymoon.eu>
 |#
 
-(in-package #:cl-user)
 (asdf:defsystem qt-lib-generator
   :version "2.0.1"
   :license "Artistic"
