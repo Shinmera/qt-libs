@@ -8,6 +8,7 @@
 
 (defvar *generic-library-directories*
   '(#+unix #p"/usr/local/lib/"
+    #+unix #p"/usr/local/lib/*/"
     #+linux #p"/usr/lib64/"
     #+linux #p"/usr/lib/x86_64-linux-gnu/"
     #+unix #p"/usr/lib/*/"
@@ -65,8 +66,9 @@
                      #+linux #p"/usr/local/Trolltech/Qt-4.8.7/plugins/"
                      #+linux #p"/usr/local/lib/qt4/plugins/"
                      #+linux #p"/usr/lib/x86_64*/qt4/plugins/"
-                     #+linux #p"/usr/lib/qt4/plugins/"
-                     #+linux #p"/usr/lib/*/qt4/plugins/"
+                     #+unix #p"/usr/local/lib/*/plugins/"
+                     #+unix #p"/usr/lib/qt4/plugins/"
+                     #+unix #p"/usr/lib/*/qt4/plugins/"
                      #+osx-ports #p"/opt/local/share/qt4/plugins/"
                      #+osx-ports #p"/opt/local/libexec/qt4/share/plugins/"
                      #+osx-brew #p"/usr/local/Cellar/qt/*/plugins/"
