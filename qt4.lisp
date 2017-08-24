@@ -7,11 +7,11 @@
 (in-package #:org.shirakumo.qtools.libs.generator)
 
 (defvar *generic-library-directories*
-  '(#+linux #p"/usr/local/lib/"
+  '(#+unix #p"/usr/local/lib/"
     #+linux #p"/usr/lib64/"
     #+linux #p"/usr/lib/x86_64-linux-gnu/"
-    #+linux #p"/usr/lib/*/"
-    #+linux #p"/usr/lib/"
+    #+unix #p"/usr/lib/*/"
+    #+unix #p"/usr/lib/"
     #+osx-ports #p"/opt/local/libexec/qt4/lib/"
     #+osx-ports #p"/opt/local/lib/"
     #+osx-brew #p"/usr/local/Cellar/*/*/lib/"))
@@ -91,8 +91,8 @@
       "qwt.5"
       "qwt5"
       "qwt")
-    (append '(#+linux #p"/usr/local/qwt/lib/"
-              #+linux #p"/usr/local/Trolltech/Qt-4.8.7/lib/"
+    (append '(#+unix #p"/usr/local/qwt/lib/"
+              #+unix #p"/usr/local/Trolltech/Qt-4.8.7/lib/"
               #+osx-brew #p"/usr/local/Cellar/qwt/*/lib/qwt.framework/"
               #+osx-brew #p"/usr/local/Cellar/qscintilla2/*/lib/")
             *generic-library-directories*))

@@ -34,11 +34,12 @@
   name)
 
 (defun installed-library-file (name &optional (defaults *standalone-libs-dir*))
+  #-(or windows unix) (error "Don't know how to create shared library files on your OS.")
   (make-pathname :name #+unix (format NIL "qtlibs!~a" (normalize-library-name name))
                        #+windows (if (find name qt-lib-generator::*qt-module-list* :test #'string-equal)
                                      (format NIL "~a4" name)
                                      name)
-                 :type #+windows "dll" #+darwin "dylib" #+linux "so"
+                 :type #+windows "dll" #+darwin "dylib" #+(and unix (not darwin)) "so"
                  :defaults defaults))
 
 (defun copy-directory-tree (from to &key force)
@@ -88,8 +89,7 @@
       (ensure-installed "commonqt" 'libcommonqt))
     (when (and dirty (eql method :install-sources))
       #+darwin (fix-dylib-collection (uiop:directory-files standalone-dir (make-pathname :type "dylib" :defaults uiop:*wild-path*)))
-      #+linux (fix-ldlib-collection (uiop:directory-files standalone-dir (make-pathname :type "so" :defaults uiop:*wild-path*)))
-      #+windows T))
+      #+linux (fix-ldlib-collection (uiop:directory-files standalone-dir (make-pathname :type "so" :defaults uiop:*wild-path*)))))
   standalone-dir)
 
 (defvar *original-funcs* (make-hash-table :test 'eql))

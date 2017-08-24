@@ -22,7 +22,7 @@
 
 (defmethod stage :around ((stage (eql :compile-sources)) (library smokeqt) &key &allow-other-keys)
   (let* ((libdirs (subdirectory (install-directory (smokegen library)) "lib"))
-         (ldvar #+linux "LD_LIBRARY_PATH" #+darwin "DYLD_LIBRARY_PATH" #+windows "PATH")
+         (ldvar #+(and unix (not darwin)) "LD_LIBRARY_PATH" #+darwin "DYLD_LIBRARY_PATH" #+windows "PATH")
          (ld-orig (get-path ldvar)))
     (set-path (list* (externalize libdirs) (externalize (subdirectory libdirs "smokegen")) ld-orig) ldvar)
     (unwind-protect

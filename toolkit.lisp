@@ -63,7 +63,8 @@
   #+windows :win
   #+linux :lin
   #+darwin :mac
-  #-(or windows linux darwin)
+  #+freebsd :bsd
+  #-(or windows linux darwin freebsd)
   (error "This platform is unsupported."))
 
 (defun arch ()
@@ -101,7 +102,8 @@
 
 (defun shared-library-file (&rest args &key host device directory name version defaults)
   (declare (ignore host device directory version))
-  (apply #'make-pathname :type #+windows "dll" #+darwin "dylib" #-(or windows darwin) "so"
+  #-(or windows unix) (error "Don't know how to create shared library files on your OS.")
+  (apply #'make-pathname :type #+windows "dll" #+darwin "dylib" #+(and unix (not darwin)) "so"
                          :name (or (and name #-windows (concatenate 'string "lib" name))
                                    (pathname-name defaults))
                          args))
@@ -120,7 +122,9 @@
         (T (or (pathname-type pathname)
                #+darwin "dylib"
                #+unix "so"
-               #+windows "dll"))))
+               #+windows "dll"
+               #-(or windows unix)
+               (error "Don't know the shared library file type for your OS.")))))
 
 (defun determine-shared-library-name (pathname)
   (cond ((cl-ppcre:scan "\\.so(\\.|$)" (pathname-name pathname))
