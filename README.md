@@ -44,7 +44,6 @@ Included in the precompiled packages for each platform are unless otherwise note
 * If you want to build the binaries yourself, you will need to install Qt. Preferably version 4.8.7 . The following packages should suffice for this:
   * Xcode: Install its Command Line Tools
   * MacPorts: `cmake qt4-mac qwt qimageblitz qscintilla phonon`
-  * Homebrew: `cmake qt4 qscintilla2` qimageblitz and qwt5 are not supported.
 
 ### Lisp
 The following implementations have been tested to work. Others may as well, but are not officially supported.
