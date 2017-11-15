@@ -46,8 +46,10 @@
     #+quicklisp (ql:quickload :qt))
 
   ;; Remove SO computation
-  (defmethod asdf/plan:traverse-action (plan op (c (eql (asdf:find-component :qt "so"))) niip)
-    NIL)
+  (defvar *original-asdf/plan-traverse-action* #'asdf/plan:traverse-action)
+  (defun asdf/plan:traverse-action (plan op c niip)
+    (unless (eql c (load-time-value (asdf:find-component :qt "so")))
+      (funcall *original-asdf/plan-traverse-action* plan op c niip)))
 
   (defmethod asdf:perform :after ((op asdf:load-op) (c (eql (asdf:find-system :qt))))
     ;; Override standard functions and use ours instead.
