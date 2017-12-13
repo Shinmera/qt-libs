@@ -92,49 +92,6 @@
       #+linux (fix-ldlib-collection (uiop:directory-files standalone-dir (make-pathname :type "so" :defaults uiop:*wild-path*)))))
   standalone-dir)
 
-(defvar *original-funcs* (make-hash-table :test 'eql))
-
-(defun csymb (def)
-  (etypecase def
-    (list (find-symbol (string (second def)) (string (first def))))
-    (symbol def)
-    (string (find-symbol def))))
-
-(defmacro qtcall (symb &rest args)
-  `(funcall (csymb '(qt ,symb)) ,@args))
-
-(defmacro qtvar (symb)
-  `(symbol-value (csymb '(qt ,symb))))
-
-(defun original-func (name)
-  (gethash (csymb name) *original-funcs*))
-
-(defun (setf original-func) (func name)
-  (setf (gethash (csymb name) *original-funcs*) func))
-
-(defun apply-original-func (name &rest args)
-  (apply #'apply
-         (or (original-func name)
-             (error "SOMETHING PROBABLY WENT HORRIBLY WRONG! I was asked to find the original function to ~s, yet it has not been saved!"
-                    name))
-         args))
-
-(defun swap-func (original new)
-  (let ((original (csymb original))
-        (new (csymb new)))
-    (unless (original-func original)
-      (setf (original-func original)
-            (fdefinition original)))
-    (unless (eql (fdefinition original) (fdefinition new))
-      (unless (eql (fdefinition original) (original-func original))
-        (warn "Function definition got changed under our nose!"))
-      (status 0 "Swapping out ~s for ~s." original new)
-      (setf (fdefinition original) (fdefinition new)))))
-
-(defun restore-func (original)
-  (status 0 "Restoring ~s to original definition." original)
-  (setf (fdefinition original) (original-func original)))
-
 (defun ensure-lib-loaded (file &optional name)
   (let ((file (etypecase file
                 (pathname file)
@@ -147,20 +104,14 @@
     (unless (cffi:foreign-library-loaded-p name)
       (cffi:load-foreign-library name))))
 
-(defvar *libs-loaded* NIL)
-(defun load-libcommonqt (&key force)
-  (when (or (not *libs-loaded*) force)
-    ;; See QT::LOAD-LIBCOMMONQT for an explanation of this.
-    #+(and sbcl (not windows)) (sb-sys:enable-interrupt sb-unix:sigchld :default)
-    ;; Do the loading.
-    (ensure-lib-loaded #-windows "QtCore" #+windows "QtCore4")
-    (ensure-lib-loaded #-windows "QtGui" #+windows "QtGui4")
-    (ensure-lib-loaded "smokebase")
-    (ensure-lib-loaded "smokeqtcore")
-    (ensure-lib-loaded "smokeqtgui")
-    (ensure-lib-loaded "commonqt")
-    (when (find-package :qt) (setf (symbol-value (find-symbol (string '*LIBRARY-LOADED-P*) :QT)) T))
-    (setf *libs-loaded* T)))
+(defun csymb (def)
+  (etypecase def
+    (list (find-symbol (string (second def)) (string (first def))))
+    (symbol def)
+    (string (find-symbol def))))
+
+(defmacro qtcall (symb &rest args)
+  `(funcall (csymb '(qt ,symb)) ,@args))
 
 (defun set-qt-plugin-paths (&rest paths)
   (qtcall interpret-call "QCoreApplication" "setLibraryPaths"
@@ -168,52 +119,6 @@
 
 (defun fix-qt-plugin-paths (&optional (base *standalone-libs-dir*))
   (set-qt-plugin-paths base (subdirectory base "plugins")))
-
-(defun make-qapplication (&rest args)
-  (or (qtvar *qapplication*)
-      (prog1 (apply-original-func '(QT MAKE-QAPPLICATION) args)
-        (fix-qt-plugin-paths))))
-
-;; We only override this to replace the explicit file loading by our
-;; ensure-lib-loaded function. Everything else is semantically the same
-;; but we have to use delegated symbol resolving as this file is loaded
-;; before the QT package exists, hence the usage of QTCALL and QTVAR
-;; where necessary.
-(defun ensure-smoke (name)
-  (qtcall ensure-loaded)
-  (let ((name (string-downcase name)))
-    (unless (qtcall named-module-number name)
-      (let ((idx (qtvar *n-modules*)))
-        (unless (< idx (length (qtvar *module-table*)))
-          (error "Sorry, +module-bits+ exceeded"))
-        (ensure-lib-loaded (format NIL "smoke~a" name))
-        (let ((init (cffi:foreign-symbol-pointer
-                     (format nil "init_~A_Smoke" name))))
-          (assert init)
-          (cffi:foreign-funcall-pointer init () :void))
-        (let ((smoke-struct
-                (cffi:mem-ref (cffi:foreign-symbol-pointer
-                               (format nil "~A_Smoke" name))
-                              :pointer))
-              (data (cffi:foreign-alloc `(:struct ,(csymb '(qt SmokeData))))))
-          (setf (svref (qtvar *module-table*) idx) smoke-struct)
-          (setf (svref (qtvar *module-data-table*) idx) data)
-          (qtcall sw_smoke smoke-struct
-                  data
-                  (cffi:get-callback (csymb '(qt deletion-callback)))
-                  (cffi:get-callback (csymb '(qt method-invocation-callback)))))
-        (incf (qtvar *n-modules*))
-        idx))))
-
-(defun patch-qt ()
-  (swap-func '(qt load-libcommonqt) 'load-libcommonqt)
-  (swap-func '(qt make-qapplication) 'make-qapplication)
-  (swap-func '(qt ensure-smoke) 'ensure-smoke))
-
-(defun unpatch-qt ()
-  (restore-func '(qt load-libcommonqt))
-  (restore-func '(qt make-qapplication))
-  (restore-func '(qt ensure-smoke)))
 
 (defun setup-paths ()
   (pushnew *standalone-libs-dir* cffi:*foreign-library-directories*)
