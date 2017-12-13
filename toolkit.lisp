@@ -30,11 +30,22 @@
         (error "Running the external program~%  ~a~%failed with return code ~a."
                program status)))))
 
+(defun flatten (list)
+  (let ((res ()))
+    (loop while list
+          for item = (pop list)
+          do (if (consp item)
+                 (dolist (i item) (push i list))
+                 (push item res)))
+    res))
+
 (defun ensure-system (system &optional (package system))
   (unless (find-package package)
     (let (#+sbcl (sb-ext:*muffled-warnings* 'style-warning))
-      #-quicklisp (asdf:load-system system)
-      #+quicklisp (ql:quickload system))))
+      #+quicklisp
+      (mapc #'ql-dist:ensure-installed
+            (flatten (ql-dist:dependency-tree (ql-dist:find-system system))))
+      (asdf:load-system system))))
 
 (defun application-available-p (&rest alternatives)
   (zerop (nth-value 2 (uiop:run-program (format NIL "~{command -v ~s~^ || ~}" alternatives) :ignore-error-status T))))
