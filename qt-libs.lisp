@@ -104,22 +104,6 @@
     (unless (cffi:foreign-library-loaded-p name)
       (cffi:load-foreign-library name))))
 
-(defun csymb (def)
-  (etypecase def
-    (list (find-symbol (string (second def)) (string (first def))))
-    (symbol def)
-    (string (find-symbol def))))
-
-(defmacro qtcall (symb &rest args)
-  `(funcall (csymb '(qt ,symb)) ,@args))
-
-(defun set-qt-plugin-paths (&rest paths)
-  (qtcall interpret-call "QCoreApplication" "setLibraryPaths"
-          (mapcar #'uiop:native-namestring paths)))
-
-(defun fix-qt-plugin-paths (&optional (base *standalone-libs-dir*))
-  (set-qt-plugin-paths base (subdirectory base "plugins")))
-
 (defun setup-paths ()
   (pushnew *standalone-libs-dir* cffi:*foreign-library-directories*)
   #+windows (pushnew-path *standalone-libs-dir* "PATH")
