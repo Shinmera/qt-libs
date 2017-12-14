@@ -12,11 +12,6 @@
    #:*standalone-libs-dir*
    #:ensure-standalone-libs
    #:ensure-lib-loaded
-   #:load-libcommonqt
-   #:set-qt-plugin-paths
-   #:fix-qt-plugin-paths
-   #:patch-qt
-   #:unpatch-qt
    #:setup-paths))
 (in-package #:org.shirakumo.qtools.libs)
 
