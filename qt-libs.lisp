@@ -12,7 +12,9 @@
    #:*standalone-libs-dir*
    #:ensure-standalone-libs
    #:ensure-lib-loaded
-   #:setup-paths))
+   #:setup-paths
+   #:foreign-library-component
+   #:foreign-library-system))
 (in-package #:org.shirakumo.qtools.libs)
 
 (defvar *standalone-libs-dir* (asdf:system-relative-pathname :qt-libs "standalone" :type :directory))
@@ -87,11 +89,11 @@
       #+linux (fix-ldlib-collection (uiop:directory-files standalone-dir (make-pathname :type "so" :defaults uiop:*wild-path*)))))
   standalone-dir)
 
-(defun ensure-lib-loaded (file &optional name)
+(defun %ensure-lib-loaded (file)
   (let ((file (etypecase file
                 (pathname file)
                 (string (installed-library-file file))))
-        (name (or name (intern (string-upcase (pathname-name file)))))
+        (name (intern (string-upcase (pathname-name file))))
         #+sbcl(sb-ext:*muffled-warnings* 'style-warning))
     (cffi::register-foreign-library
      name `((T ,file))
@@ -99,9 +101,154 @@
     (unless (cffi:foreign-library-loaded-p name)
       (cffi:load-foreign-library name))))
 
+(defun ensure-lib-loaded (file)
+  (cond ((pathnamep file)
+         (%ensure-lib-loaded file))
+        ((starts-with "smoke" file)
+         (asdf:load-system (subseq file 5) :verbose NIL))
+        (T
+         (asdf:load-system file :verbose NIL))))
+
 (defun setup-paths ()
   (pushnew *standalone-libs-dir* cffi:*foreign-library-directories*)
   #+windows (pushnew-path *standalone-libs-dir* "PATH")
   #+darwin (pushnew-path *standalone-libs-dir* "DYLD_LIBRARY_PATH")
   #+unix (pushnew-path *standalone-libs-dir* "LD_LIBRARY_PATH"))
 (setup-paths)
+
+(defclass foreign-library-component (asdf:file-component)
+  ()
+  (:default-initargs :type #+windows "dll" #+darwin "dylib" #+linux "so"
+                           #-(or windows darwin linux) NIL))
+
+(defmethod asdf:perform ((op asdf:compile-op) (c foreign-library-component))
+  (%ensure-lib-loaded (asdf:component-name c)))
+
+(defmethod asdf:perform ((op asdf:load-op) (c foreign-library-component))
+  (%ensure-lib-loaded (asdf:component-name c)))
+
+(defclass foreign-library-system (asdf:system)
+  ((library-files :accessor library-files :initarg :library-files :initform NIL)
+   (smoke-module :accessor smoke-module :initarg :module :initform NIL)))
+
+(defmacro f (pkg name &rest args)
+  `(funcall (find-symbol ,(string name) ,(string pkg)) ,@args))
+
+(defmethod asdf:perform :after ((op asdf:compile-op) (c foreign-library-system))
+  (when (smoke-module c)
+    (f qt initialize-smoke (smoke-module c))))
+
+(defmethod asdf:perform :after ((op asdf:load-op) (c foreign-library-system))
+  (when (smoke-module c)
+    (f qt initialize-smoke (smoke-module c))))
+
+(defun compile-foreign-library-system (name &key module depends-on library-files)
+  `(asdf:defsystem ,(make-symbol (string-upcase name))
+     :defsystem-depends-on (:qt-libs)
+     :class "qt-libs:foreign-library-system"
+     :version "1.0.0"
+     :license "Artistic"
+     :author "Nicolas Hafner <shinmera@tymoon.eu>"
+     :maintainer "Nicolas Hafner <shinmera@tymoon.eu>"
+     :description ,(format NIL "Loads the ~a foreign library." name)
+     ,@(when module `(:module ,(string-upcase module)))
+     :serial T
+     :components ,(loop for file in library-files
+                        collect `("qt-libs:foreign-library-component" ,file))
+     :depends-on ,depends-on))
+
+(defun write-foreign-library-system (name &key module depends-on library-files path)
+  (let ((path (or path (asdf:system-relative-pathname :qt-libs (format NIL "systems/~(~a~).asd" name)))))
+    (ensure-directories-exist path)
+    (with-open-file (stream path :direction :output :if-exists :supersede)
+      (let ((*package* (find-package :cl-user))
+            (*print-case* :downcase)
+            (*print-pretty* T))
+        (destructuring-bind (def name &rest kargs)
+            (compile-foreign-library-system name :module module :depends-on depends-on :library-files library-files)
+          (format stream "~
+\(~s ~s~{
+  ~s ~s~})"
+                  def name kargs))))
+    path))
+
+;; Manually gathered from ldd/otool/depwalker information about the libraries
+(defun generate-foreign-library-systems ()
+  (macrolet ((g (&body defs)
+               `(list
+                 ,@(loop for def in defs
+                         collect (destructuring-bind (name &key (module-p T) depends-on library-files) def
+                                   `(write-foreign-library-system
+                                     ',name :depends-on ',depends-on
+                                            :library-files ',library-files
+                                            :module ,(when module-p `',name)))))))
+    (g (smokebase
+        :library-files ("smokebase")
+        :module-p NIL)
+       (commonqt
+        :depends-on (:smokebase)
+        :library-files ("QtCore" "QtGui" "commonqt")
+        :module-p NIL)
+       (phonon
+        :depends-on (:qtcore :qtgui
+                     (:feature (:or :linux :darwin) :qtdbus)
+                     (:feature (:or :linux :darwin) :qtxml))
+        :library-files ("phonon" "smokephonon"))
+       (qimageblitz
+        :depends-on (:qtcore :qtgui)
+        :library-files ("qimageblitz" "smokeqimageblitz"))
+       (qsci
+        :depends-on (:qtcore :qtgui)
+        :library-files ("qscintilla2" "smokeqscintilla2"))
+       (qt3support
+        :depends-on (:qtcore :qtgui :qtxml :qtnetwork :qtsql)
+        :library-files ("Qt3Support" "smokeqt3support"))
+       (qtcore
+        :depends-on (:commonqt)
+        :library-files ("QtCore" "smokeqtcore"))
+       (qtdbus
+        :depends-on (:qtcore :qtxml)
+        :library-files ("QtDBus" "smokeqtdbus"))
+       (qtdeclarative
+        :depends-on (:qtcore :qtgui :qtnetwork :qtscript :qtsql :qtxmlpatterns)
+        :library-files ("QtDeclarative" "smokeqtdeclarative"))
+       (qtgui
+        :depends-on (:qtcore)
+        :library-files ("QtGui" "smokeqtgui"))
+       (qthelp
+        :depends-on (:qtcore :qtgui :qtnetwork :qtsql)
+        :library-files ("QtCLucene" "QtHelp" "smokeqthelp"))
+       (qtnetwork
+        :depends-on (:qtcore)
+        :library-files ("QtNetwork" "smokeqtnetwork"))
+       (qtopengl
+        :depends-on (:qtcore :qtgui)
+        :library-files ("QtOpenGL" "smokeqtopengl"))
+       (qtscript
+        :depends-on (:qtcore)
+        :library-files ("QtScript" "smokeqtscript"))
+       (qtsql
+        :depends-on (:qtcore :qtgui)
+        :library-files ("QtSql" "smokeqtsql"))
+       (qtsvg
+        :depends-on (:qtcore :qtgui)
+        :library-files ("QtSvg" "smokeqtsvg"))
+       (qttest
+        :depends-on (:qtcore :qtgui)
+        :library-files ("QtTest" "smokeqttest"))
+       (qtuitools
+        :depends-on (:qtcore :qtgui)
+        :library-files ("smokeqtuitools"))
+       (qtwebkit
+        :depends-on (:qtcore :qtgui :qtnetwork)
+        :library-files ("QtWebKit" "smokeqtwebkit"))
+       (qwt
+        :depends-on (:qtcore :qtgui
+                     (:feature :windows :qtsvg))
+        :library-files ("qwt" "smokeqwt"))
+       (qtxmlpatterns
+        :depends-on (:qtcore :qtnetwork)
+        :library-files ("QtXmlPatterns" "smokeqtxmlpatterns"))
+       (qtxml
+        :depends-on (:qtcore)
+        :library-files ("QtXml" "smokeqtxml")))))
