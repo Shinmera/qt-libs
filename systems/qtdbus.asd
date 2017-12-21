@@ -10,4 +10,4 @@
   :serial t
   :components (("qt-libs:foreign-library-component" "QtDBus")
                ("qt-libs:foreign-library-component" "smokeqtdbus"))
-  :depends-on (:qtcore :qtxml))
+  :depends-on (:qt+libs :qtcore :qtxml))

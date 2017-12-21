@@ -10,4 +10,4 @@
   :serial t
   :components (("qt-libs:foreign-library-component" "QtSql")
                ("qt-libs:foreign-library-component" "smokeqtsql"))
-  :depends-on (:qtcore :qtgui))
+  :depends-on (:qt+libs :qtcore :qtgui))

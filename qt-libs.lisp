@@ -155,7 +155,7 @@
      :serial T
      :components ,(loop for file in library-files
                         collect `("qt-libs:foreign-library-component" ,file))
-     :depends-on ,depends-on))
+     :depends-on (:qt+libs ,@depends-on)))
 
 (defun write-foreign-library-system (name &key module depends-on library-files path)
   (let ((path (or path (asdf:system-relative-pathname :qt-libs (format NIL "systems/~(~a~).asd" name)))))

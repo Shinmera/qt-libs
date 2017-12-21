@@ -10,4 +10,4 @@
   :serial t
   :components (("qt-libs:foreign-library-component" "QtWebKit")
                ("qt-libs:foreign-library-component" "smokeqtwebkit"))
-  :depends-on (:qtcore :qtgui :qtnetwork))
+  :depends-on (:qt+libs :qtcore :qtgui :qtnetwork))

@@ -8,4 +8,4 @@
   :description "Loads the smokebase foreign library."
   :serial t
   :components (("qt-libs:foreign-library-component" "smokebase"))
-  :depends-on nil)
+  :depends-on (:qt+libs))

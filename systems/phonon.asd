@@ -10,5 +10,5 @@
   :serial t
   :components (("qt-libs:foreign-library-component" "phonon")
                ("qt-libs:foreign-library-component" "smokephonon"))
-  :depends-on (:qtcore :qtgui (:feature (:or :linux :darwin) :qtdbus)
+  :depends-on (:qt+libs :qtcore :qtgui (:feature (:or :linux :darwin) :qtdbus)
                (:feature (:or :linux :darwin) :qtxml)))

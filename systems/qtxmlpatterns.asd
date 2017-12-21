@@ -10,4 +10,4 @@
   :serial t
   :components (("qt-libs:foreign-library-component" "QtXmlPatterns")
                ("qt-libs:foreign-library-component" "smokeqtxmlpatterns"))
-  :depends-on (:qtcore :qtnetwork))
+  :depends-on (:qt+libs :qtcore :qtnetwork))

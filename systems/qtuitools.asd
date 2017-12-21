@@ -9,4 +9,4 @@
   :module "QTUITOOLS"
   :serial t
   :components (("qt-libs:foreign-library-component" "smokeqtuitools"))
-  :depends-on (:qtcore :qtgui))
+  :depends-on (:qt+libs :qtcore :qtgui))

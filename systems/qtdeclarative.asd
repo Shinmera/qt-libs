@@ -10,4 +10,5 @@
   :serial t
   :components (("qt-libs:foreign-library-component" "QtDeclarative")
                ("qt-libs:foreign-library-component" "smokeqtdeclarative"))
-  :depends-on (:qtcore :qtgui :qtnetwork :qtscript :qtsql :qtxmlpatterns))
+  :depends-on (:qt+libs :qtcore :qtgui :qtnetwork :qtscript :qtsql
+               :qtxmlpatterns))

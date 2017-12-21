@@ -11,4 +11,4 @@
   :components (("qt-libs:foreign-library-component" "QtCLucene")
                ("qt-libs:foreign-library-component" "QtHelp")
                ("qt-libs:foreign-library-component" "smokeqthelp"))
-  :depends-on (:qtcore :qtgui :qtnetwork :qtsql))
+  :depends-on (:qt+libs :qtcore :qtgui :qtnetwork :qtsql))

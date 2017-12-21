@@ -10,4 +10,4 @@
   :serial t
   :components (("qt-libs:foreign-library-component" "Qt3Support")
                ("qt-libs:foreign-library-component" "smokeqt3support"))
-  :depends-on (:qtcore :qtgui :qtxml :qtnetwork :qtsql))
+  :depends-on (:qt+libs :qtcore :qtgui :qtxml :qtnetwork :qtsql))

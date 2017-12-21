@@ -10,4 +10,4 @@
   :components (("qt-libs:foreign-library-component" "QtCore")
                ("qt-libs:foreign-library-component" "QtGui")
                ("qt-libs:foreign-library-component" "commonqt"))
-  :depends-on (:smokebase))
+  :depends-on (:qt+libs :smokebase))

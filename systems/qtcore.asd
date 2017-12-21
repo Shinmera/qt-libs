@@ -10,4 +10,4 @@
   :serial t
   :components (("qt-libs:foreign-library-component" "QtCore")
                ("qt-libs:foreign-library-component" "smokeqtcore"))
-  :depends-on (:commonqt))
+  :depends-on (:qt+libs :commonqt))

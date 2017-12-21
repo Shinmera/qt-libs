@@ -10,4 +10,4 @@
   :serial t
   :components (("qt-libs:foreign-library-component" "qwt")
                ("qt-libs:foreign-library-component" "smokeqwt"))
-  :depends-on (:qtcore :qtgui (:feature :windows :qtsvg)))
+  :depends-on (:qt+libs :qtcore :qtgui (:feature :windows :qtsvg)))
