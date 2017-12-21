@@ -199,7 +199,7 @@
         :library-files ("qimageblitz" "smokeqimageblitz"))
        (qsci
         :depends-on (:qtcore :qtgui)
-        :library-files ("qscintilla2" "smokeqscintilla2"))
+        :library-files ("qscintilla2" "smokeqsci"))
        (qt3support
         :depends-on (:qtcore :qtgui :qtxml :qtnetwork :qtsql)
         :library-files ("Qt3Support" "smokeqt3support"))

@@ -9,5 +9,5 @@
   :module "QSCI"
   :serial t
   :components (("qt-libs:foreign-library-component" "qscintilla2")
-               ("qt-libs:foreign-library-component" "smokeqscintilla2"))
+               ("qt-libs:foreign-library-component" "smokeqsci"))
   :depends-on (:qt+libs :qtcore :qtgui))
