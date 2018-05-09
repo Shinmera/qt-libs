@@ -144,14 +144,17 @@
     (f qt initialize-smoke (smoke-module c))))
 
 (defun manually-load-foreign-library-system (sys)
-  (let* ((sys (asdf:find-system sys T))
+  (let* ((asdf:*system-definition-search-functions* ())
+         (sys (asdf:find-system sys T))
          (plan (asdf/plan:make-plan 'asdf/plan:sequential-plan 'asdf:load-op sys
-                                    :forcing (asdf/forcing:make-forcing :system sys :force T))))
+                                    #+ASDF3.3 :forcing #+ASDF3.3 (asdf/forcing:make-forcing :system sys :force T)
+                                    #-ASDF3.3 :force T)))
     (loop for (op . c) in (asdf/plan:plan-actions plan)
           when (and (typep op 'asdf/lisp-action:compile-op)
                     (or (typep c 'foreign-library-component)
                         (typep c 'foreign-library-system)))
-          do (asdf:perform op c))))
+          do (handler-bind ((warning #'muffle-warning))
+               (asdf:perform op c)))))
 
 (defun compile-foreign-library-system (name &key module depends-on library-files)
   `(asdf:defsystem ,(make-symbol (string-upcase name))
