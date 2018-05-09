@@ -14,7 +14,8 @@
    #:ensure-lib-loaded
    #:setup-paths
    #:foreign-library-component
-   #:foreign-library-system))
+   #:foreign-library-system
+   #:manually-load-foreign-library-system))
 (in-package #:org.shirakumo.qtools.libs)
 
 (defvar *standalone-libs-dir* (asdf:system-relative-pathname :qt-libs "standalone" :type :directory))
@@ -141,6 +142,16 @@
 (defmethod asdf:perform :after ((op asdf:load-op) (c foreign-library-system))
   (when (smoke-module c)
     (f qt initialize-smoke (smoke-module c))))
+
+(defun manually-load-foreign-library-system (sys)
+  (let* ((sys (asdf:find-system sys T))
+         (plan (asdf/plan:make-plan 'asdf/plan:sequential-plan 'asdf:load-op sys
+                                    :forcing (asdf/forcing:make-forcing :system sys :force T))))
+    (loop for (op . c) in (asdf/plan:plan-actions plan)
+          when (and (typep op 'asdf/lisp-action:compile-op)
+                    (or (typep c 'foreign-library-component)
+                        (typep c 'foreign-library-system)))
+          do (asdf:perform op c))))
 
 (defun compile-foreign-library-system (name &key module depends-on library-files)
   `(asdf:defsystem ,(make-symbol (string-upcase name))
