@@ -34,9 +34,12 @@
 (defun installed-library-file (name &optional (defaults *standalone-libs-dir*))
   #-(or windows unix) (error "Don't know how to create shared library files on your OS.")
   (make-pathname :name #+unix (format NIL "qtlibs!~a" (normalize-library-name name))
-                       #+windows (if (find name qt-lib-generator::*qt-module-list* :test #'string-equal)
-                                     (format NIL "~a4" name)
-                                     name)
+                       #+windows (cond ((find name qt-lib-generator::*qt-module-list* :test #'string-equal)
+                                        (format NIL "~a4" name))
+                                       ((string-equal name "qwt")
+                                        "qwt5")
+                                       (T
+                                        name))
                  :type #+windows "dll" #+darwin "dylib" #+(and unix (not darwin)) "so"
                  :defaults defaults))
 
