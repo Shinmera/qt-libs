@@ -151,7 +151,7 @@
          (sys (asdf:find-system sys T))
          (plan (asdf/plan:make-plan 'asdf/plan:sequential-plan 'asdf:load-op sys
                                     #+ASDF3.3 :forcing #+ASDF3.3 (asdf/forcing:make-forcing :system sys :force T)
-                                    #-ASDF3.3 :force T)))
+                                    #-ASDF3.3 :force #-ASDF3.3 T)))
     (loop for (op . c) in (asdf/plan:plan-actions plan)
           when (and (typep op 'asdf/lisp-action:compile-op)
                     (or (typep c 'foreign-library-component)
