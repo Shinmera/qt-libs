@@ -10,7 +10,9 @@
   :author "Nicolas Hafner <shinmera@tymoon.eu>"
   :maintainer "Nicolas Hafner <shinmera@tymoon.eu>"
   :description "Bundling of necessary shared object files and build scripts."
-  :homepage "https://github.com/Shinmera/qt-libs"
+  :homepage "https://Shinmera.github.io/qt-libs/"
+  :bug-tracker "https://github.com/Shinmera/qt-libs/issues"
+  :source-control (:git "https://github.com/Shinmera/qt-libs.git")
   :serial T
   :components ((:file "package")
                (:file "toolkit")
