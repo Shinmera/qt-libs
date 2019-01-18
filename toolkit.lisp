@@ -142,7 +142,7 @@
          (subseq (pathname-name pathname) 0 (cl-ppcre:scan "\\.so(\\.|$)" (pathname-name pathname))))
         (T
          (or (cl-ppcre:register-groups-bind (name) ("^(.+)\\.\\d\\.\\d\\.\\d$" (pathname-name pathname)) name)
-             (cl-ppcre:register-groups-bind (NIL name) ("^(lib)?(.+)$" (pathname-name pathname))
+             (cl-ppcre:register-groups-bind (NIL name) ("^(lib|qtlibs!)?(.+)$" (pathname-name pathname))
                #+windows name #-windows (concatenate 'string "lib" name))))))
 
 (defun checksum-string (vector)
