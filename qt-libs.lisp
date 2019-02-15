@@ -189,83 +189,84 @@
                   def name kargs))))
     path))
 
+
 ;; Manually gathered from ldd/otool/depwalker information about the libraries
+(defvar *foreign-library-systems-data*
+  '((smokebase
+     :library-files ("smokebase")
+     :module-p NIL)
+    (commonqt
+     :depends-on (:smokebase)
+     :library-files ("QtCore" "QtGui" "commonqt")
+     :module-p NIL)
+    (phonon
+     :depends-on (:qtcore :qtgui
+                  (:feature (:or :linux :darwin) :qtdbus)
+                  (:feature (:or :linux :darwin) :qtxml))
+     :library-files ("phonon" "smokephonon"))
+    (qimageblitz
+     :depends-on (:qtcore :qtgui)
+     :library-files ("qimageblitz" "smokeqimageblitz"))
+    (qsci
+     :depends-on (:qtcore :qtgui)
+     :library-files ("qscintilla2" "smokeqsci"))
+    (qt3support
+     :depends-on (:qtcore :qtgui :qtxml :qtnetwork :qtsql)
+     :library-files ("Qt3Support" "smokeqt3support"))
+    (qtcore
+     :depends-on (:commonqt)
+     :library-files ("QtCore" "smokeqtcore"))
+    (qtdbus
+     :depends-on (:qtcore :qtxml)
+     :library-files ("QtDBus" "smokeqtdbus"))
+    (qtdeclarative
+     :depends-on (:qtcore :qtgui :qtnetwork :qtscript :qtsql :qtxmlpatterns)
+     :library-files ("QtDeclarative" "smokeqtdeclarative"))
+    (qtgui
+     :depends-on (:qtcore)
+     :library-files ("QtGui" "smokeqtgui"))
+    (qthelp
+     :depends-on (:qtcore :qtgui :qtnetwork :qtsql)
+     :library-files ("QtCLucene" "QtHelp" "smokeqthelp"))
+    (qtnetwork
+     :depends-on (:qtcore)
+     :library-files ("QtNetwork" "smokeqtnetwork"))
+    (qtopengl
+     :depends-on (:qtcore :qtgui)
+     :library-files ("QtOpenGL" "smokeqtopengl"))
+    (qtscript
+     :depends-on (:qtcore)
+     :library-files ("QtScript" "smokeqtscript"))
+    (qtsql
+     :depends-on (:qtcore :qtgui)
+     :library-files ("QtSql" "smokeqtsql"))
+    (qtsvg
+     :depends-on (:qtcore :qtgui)
+     :library-files ("QtSvg" "smokeqtsvg"))
+    (qttest
+     :depends-on (:qtcore :qtgui)
+     :library-files ("QtTest" "smokeqttest"))
+    (qtuitools
+     :depends-on (:qtcore :qtgui)
+     :library-files ("smokeqtuitools"))
+    (qtwebkit
+     :depends-on (:qtcore :qtgui :qtnetwork)
+     :library-files ("QtWebKit" "smokeqtwebkit"))
+    (qwt
+     :depends-on (:qtcore :qtgui
+                  (:feature :windows :qtsvg))
+     :library-files ("qwt" "smokeqwt"))
+    (qtxmlpatterns
+     :depends-on (:qtcore :qtnetwork)
+     :library-files ("QtXmlPatterns" "smokeqtxmlpatterns"))
+    (qtxml
+     :depends-on (:qtcore)
+     :library-files ("QtXml" "smokeqtxml"))))
+
 (defun generate-foreign-library-systems ()
-  (macrolet ((g (&body defs)
-               `(list
-                 ,@(loop for def in defs
-                         collect (destructuring-bind (name &key (module-p T) depends-on library-files) def
-                                   `(write-foreign-library-system
-                                     ',name :depends-on ',depends-on
-                                            :library-files ',library-files
-                                            :module ,(when module-p `',name)))))))
-    (g (smokebase
-        :library-files ("smokebase")
-        :module-p NIL)
-       (commonqt
-        :depends-on (:smokebase)
-        :library-files ("QtCore" "QtGui" "commonqt")
-        :module-p NIL)
-       (phonon
-        :depends-on (:qtcore :qtgui
-                     (:feature (:or :linux :darwin) :qtdbus)
-                     (:feature (:or :linux :darwin) :qtxml))
-        :library-files ("phonon" "smokephonon"))
-       (qimageblitz
-        :depends-on (:qtcore :qtgui)
-        :library-files ("qimageblitz" "smokeqimageblitz"))
-       (qsci
-        :depends-on (:qtcore :qtgui)
-        :library-files ("qscintilla2" "smokeqsci"))
-       (qt3support
-        :depends-on (:qtcore :qtgui :qtxml :qtnetwork :qtsql)
-        :library-files ("Qt3Support" "smokeqt3support"))
-       (qtcore
-        :depends-on (:commonqt)
-        :library-files ("QtCore" "smokeqtcore"))
-       (qtdbus
-        :depends-on (:qtcore :qtxml)
-        :library-files ("QtDBus" "smokeqtdbus"))
-       (qtdeclarative
-        :depends-on (:qtcore :qtgui :qtnetwork :qtscript :qtsql :qtxmlpatterns)
-        :library-files ("QtDeclarative" "smokeqtdeclarative"))
-       (qtgui
-        :depends-on (:qtcore)
-        :library-files ("QtGui" "smokeqtgui"))
-       (qthelp
-        :depends-on (:qtcore :qtgui :qtnetwork :qtsql)
-        :library-files ("QtCLucene" "QtHelp" "smokeqthelp"))
-       (qtnetwork
-        :depends-on (:qtcore)
-        :library-files ("QtNetwork" "smokeqtnetwork"))
-       (qtopengl
-        :depends-on (:qtcore :qtgui)
-        :library-files ("QtOpenGL" "smokeqtopengl"))
-       (qtscript
-        :depends-on (:qtcore)
-        :library-files ("QtScript" "smokeqtscript"))
-       (qtsql
-        :depends-on (:qtcore :qtgui)
-        :library-files ("QtSql" "smokeqtsql"))
-       (qtsvg
-        :depends-on (:qtcore :qtgui)
-        :library-files ("QtSvg" "smokeqtsvg"))
-       (qttest
-        :depends-on (:qtcore :qtgui)
-        :library-files ("QtTest" "smokeqttest"))
-       (qtuitools
-        :depends-on (:qtcore :qtgui)
-        :library-files ("smokeqtuitools"))
-       (qtwebkit
-        :depends-on (:qtcore :qtgui :qtnetwork)
-        :library-files ("QtWebKit" "smokeqtwebkit"))
-       (qwt
-        :depends-on (:qtcore :qtgui
-                     (:feature :windows :qtsvg))
-        :library-files ("qwt" "smokeqwt"))
-       (qtxmlpatterns
-        :depends-on (:qtcore :qtnetwork)
-        :library-files ("QtXmlPatterns" "smokeqtxmlpatterns"))
-       (qtxml
-        :depends-on (:qtcore)
-        :library-files ("QtXml" "smokeqtxml")))))
+  (dolist (definition *foreign-library-systems-data*)
+    (destructuring-bind (name &key (module-p T) depends-on library-files) definition
+      (write-foreign-library-system
+       name :depends-on depends-on
+            :library-files library-files
+            :module (when module-p name)))))
