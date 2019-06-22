@@ -6,7 +6,7 @@
 
 (asdf:defsystem qt-lib-generator
   :version "2.0.1"
-  :license "Artistic"
+  :license "zlib"
   :author "Nicolas Hafner <shinmera@tymoon.eu>"
   :maintainer "Nicolas Hafner <shinmera@tymoon.eu>"
   :description "Bundling of necessary shared object files and build scripts."

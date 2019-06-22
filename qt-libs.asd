@@ -6,7 +6,7 @@
 
 (asdf:defsystem qt-libs
   :version "2.0.2"
-  :license "Artistic"
+  :license "zlib"
   :author "Nicolas Hafner <shinmera@tymoon.eu>"
   :maintainer "Nicolas Hafner <shinmera@tymoon.eu>"
   :description "System to ensure that the necessary Qt libs are available."
