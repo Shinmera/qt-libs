@@ -108,6 +108,8 @@
 (defun ensure-lib-loaded (file)
   (cond ((pathnamep file)
          (%ensure-lib-loaded file))
+        (uiop:*image-dumped-p*
+         (%ensure-lib-loaded file))
         ((starts-with "smoke" file)
          (asdf:load-system (subseq file 5) :verbose NIL))
         (T
