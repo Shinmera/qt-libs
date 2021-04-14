@@ -166,7 +166,7 @@
      :defsystem-depends-on (:qt-libs)
      :class "qt-libs:foreign-library-system"
      :version "1.0.0"
-     :license "Artistic"
+     :license "zlib"
      :author "Nicolas Hafner <shinmera@tymoon.eu>"
      :maintainer "Nicolas Hafner <shinmera@tymoon.eu>"
      :description ,(format NIL "Loads the ~a foreign library." name)
